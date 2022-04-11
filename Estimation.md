@@ -22,9 +22,9 @@ Consider the EZWH  project as described in YOUR requirement document, assume tha
 |         component name    | Estimated effort (person hours)   |             
 | ----------- | ------------------------------- | 
 |requirement document    | |
-| GUI prototype ||
-|design document ||
-|code ||
+| GUI prototype | |
+|design document | |
+|code | |
 | unit tests ||
 | api tests ||
 | management documents  ||
