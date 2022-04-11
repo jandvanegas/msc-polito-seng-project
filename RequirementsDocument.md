@@ -72,9 +72,9 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 ## Interfaces
 
-\<describe here each interface in the context diagram>
+/<describe here each interface in the context diagram>
 
-\<GUIs will be described graphically in a separate document>
+/<GUIs will be described graphically in a separate document>
 
 | Actor                  |           Logical Interface           | Physical Interface       |
 | ---------------------- | :-----------------------------------: | :----------------------- |
@@ -88,9 +88,9 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 # Stories and personas
 
-\<A Persona is a realistic impersonation of an actor. Define here a few personas and describe in plain text how a persona interacts with the system>
-\<Persona is-an-instance-of actor>
-\<stories will be formalized later as scenarios in use cases>
+/<A Persona is a realistic impersonation of an actor. Define here a few personas and describe in plain text how a persona interacts with the system>
+/<Persona is-an-instance-of actor>
+/<stories will be formalized later as scenarios in use cases>
 
 - persona 1: medium company, 10 years of experience
   - story: a company composed of different organizational units needs a system to efficiently buy different products and also manage its own inventory.
@@ -103,7 +103,7 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 ## Functional Requirements
 
-\<they match to high level use cases>
+/<they match to high level use cases>
 
 | ID        |           Description           |
 | --------- | :-----------------------------: |
@@ -841,9 +841,9 @@ The supplier want to see if the administrator has made the supplier as "trusted"
 
 # System Design
 
-\<describe here system design>
-\<must be consistent with Context diagram>
+/<describe here system design>
+/<must be consistent with Context diagram>
 
 # Deployment Diagram
 
-\<describe here deployment diagram >
+/<describe here deployment diagram >
