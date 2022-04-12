@@ -72,9 +72,6 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 ## Interfaces
 
-/<describe here each interface in the context diagram>
-
-/<GUIs will be described graphically in a separate document>
 
 | Actor                  |           Logical Interface           | Physical Interface       |
 | ---------------------- | :-----------------------------------: | :----------------------- |
@@ -88,10 +85,6 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 # Stories and personas
 
-/<A Persona is a realistic impersonation of an actor. Define here a few personas and describe in plain text how a persona interacts with the system>
-/<Persona is-an-instance-of actor>
-/<stories will be formalized later as scenarios in use cases>
-
 - persona 1: medium company, 10 years of experience
   - story: a company composed of different organizational units needs a system to efficiently buy different products and also manage its own inventory.
 - persona 2: small retailer of a small city
@@ -103,7 +96,6 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 
 ## Functional Requirements
 
-/<they match to high level use cases>
 
 | ID        |           Description           |
 | --------- | :-----------------------------: |
@@ -136,7 +128,7 @@ EZWH (EaSy WareHouse) is a software application to support the management of a w
 | ⠀⠀⠀⠀FR5.3 |           modify item           |
 | ⠀⠀⠀⠀FR5.4 |         View inventory          |
 |           |                                 |
-| FR6      |         Handle supplier         |
+| FR6      |         Handle supplier          |
 | ⠀⠀⠀⠀FR6.1 |     Modify supplier profile     |
 | ⠀⠀⠀⠀FR6.2 |     Delete supplier profile     |
 | ⠀⠀⠀⠀FR6.3 |           view orders           |
@@ -827,11 +819,13 @@ The supplier want to see if the administrator has made the supplier as "trusted"
 
 # Glossary
 
-- USER: for simplicity an user is a generalization of the supplier, the retailer, the warehouse manager, the internal order manager and also the retailer. (this term is useful in some scenario where each of them can do the scenario)
-- SYSTEM: the "thinking/elaborating part" of the system
+- USER: for simplicity an user is a generalization of the supplier, the retailer, the warehouse manager, the quality office, the internal order manager and also the retailer. (this term is useful in some scenario where each of them can do the scenario)
 - WAREHOUSE MANAGER: warehouse manager of the company or of the retailer
-- INTERNAL CALOGUE: the inventory of the company / retailer
-- EXTERNAL CATALOGUE: the catalogue storing all the items selled from the suppliers
+- ITEM: with out system we want to handle selling of this entity
+- ORDER: this class is divided into two sub class: internal order and external one. the system manages these two entity in a different way.
+- ACCOUNT: each user who want to use the system has an account to access all the feature of the platform 
+- ADMINISTRATOR: the administrator has the ability to manage all the system. it is also in charge to make a supplier "able" to seel through the platform.
+- ORDER STATUS: each order has one of the following status: deliveder, cancelled, rejected.
 
 * for our system retailers and company are the same entity. For this reason we will refer to both as warehouse manager.
 
@@ -841,9 +835,8 @@ The supplier want to see if the administrator has made the supplier as "trusted"
 
 # System Design
 
-/<describe here system design>
-/<must be consistent with Context diagram>
+![System design](src/img/system.jpg "System design")
 
 # Deployment Diagram
 
-/<describe here deployment diagram >
+![Deployment Diagram](src/img/deployment.jpg "Deployment Diagram")
