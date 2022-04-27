@@ -34,7 +34,7 @@ In order to manage each resource endpoint(Order, SKU, SKUItem, etc), we will imp
 
 # Verification traceability matrix
 
-|     | Internal order | restock order | return order | internal customer | test descriptor | sku item | test result | supplier | user | warehouse | position | sku | item | customer | Hw_control |
+|     | Internal order | restock order | return order | internal customer | test descriptor | sku item | test result | supplier | user | warehouse | position | sku | item | customer | control |
 | --- | :------------: | :-----------: | :----------: | :---------------: | :-------------: | :------: | :---------: | :------: | :--: | :-------: | :------: | :-: | :--: | :------: | :--------: |
 | FR1 |                |               |              |                   |                 |          |             |          |  x   |           |          |     |      |          |     x      |
 | FR2 |                |               |              |                   |                 |    x     |             |          |      |           |          |  x  |      |          |     x      |
