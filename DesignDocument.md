@@ -24,7 +24,7 @@ Ezwh is a three layered application.
 * _exwh_ (second level): the logic unit of the system (backend).  it corresponds to the "control" of the MVC architecture
 * _data_ (third level): for storing data.  it corresponds to the "model" of the MVC architecture
 
-![High Level Design](src/img/HighLevelDesign.jpg)
+![High Level Design](src/img/highLevelDesign.jpg)
 
 # Low level design
 
