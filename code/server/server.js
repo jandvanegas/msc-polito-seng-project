@@ -98,44 +98,146 @@ async function main() {
 
   //4) api/sku/:id
   app.put("/api/sku/:id", async (req, res) => {
+    //check for errors
+    if (Object.keys(req.body).length === 0) {
+      return res.status(422).json({ error: "empty body request" });
+    }
+    const id = req.params.id;
+    if (req.params.id === "undefined") {
+      return res.status(422).json({ error: "no id" });
+    }
+
+    //retrieve the sku
+    const sku = await db
+      .returnSku(id)
+      .then((value) => {
+        //update the sku
+        const updateSku = db.updateSku(
+          id,
+          req.body.newDescription,
+          req.body.newWeight,
+          req.body.newVolume,
+          req.body.newNotes,
+          req.body.newPrice,
+          req.body.newAvailableQuantity
+        );
+        updateSku
+          .then(() => {
+            //check for position
+            console.log(value.position);
+            if (value.position === null) {
+              //no update the position
+              return res.status(200).json({ message: "updated sku only" });
+            } else {
+              //update the position
+              const updatePosition = db.updatePosition(
+                value.position,
+                req.body.newWeight,
+                req.body.newVolume,
+                value.weight,
+                value.volume
+              );
+              updatePosition
+                .then(() => {
+                  return res
+                    .status(200)
+                    .json({
+                      message: "updated sku and it's relative position",
+                    });
+                })
+                .catch((err) => {
+                  //update position catch
+                  return res
+                    .status(422)
+                    .json({ message: "error during position update" });
+                });
+            }
+          })
+          .catch((err) => {
+            //sku updating catch
+            console.log(err);
+            return res
+              .status(503)
+              .json({ message: "error during updating sku" });
+          });
+      })
+      .catch((err) => {
+        //sku searching catch
+        return res.status(404).json({ message: "sku not found" });
+      });
+  });
+
+  //5) api/sku/:id/position
+  app.put("/api/sku/:id/position", async (req, res) => {
 
     //check for errors
     if (Object.keys(req.body).length === 0) {
       return res.status(422).json({ error: "empty body request" });
     }
-    const id = req.params.id
-    if (req.params.id === 'undefined') {
+    const id = req.params.id;
+    if (req.params.id === "undefined") {
       return res.status(422).json({ error: "no id" });
     }
-
-    //retrieve the sku
-    const sku = await db.returnSku(id).then((value)=>{
-      //update the sku 
-      const updateSku =  db.updateSku(id, req.body.newDescription, req.body.newWeight, req.body.newVolume, req.body.newNotes, req.body.newPrice, req.body.newAvailableQuantity)
-      updateSku.then(()=>{
-      
-
-        //check for position
-        if(value.position===undefined){ //no update the position
-          return res.status(200).json({ message: "updated sku" });
-        }else{ //update the position
-          //1 -> to add to the total , -1 -> to remove from the
-          const updatePosition =  db.updatePosition(value.position, req.body.newWeight, req.body.newVolume, value.weight, value.volume)
-          updatePosition.then(()=>{
-            return res.status(200).json({ message: "updated sku and position" });
-          })
-        }
-      })
-    })
+    //check for authorization 
     
+    const sku = await db.returnSku(req.params.id).then((value1)=>{
+      const updateSkuPosition = db.updateSkuPosition(req.params.id, req.body.position).then((value2)=>{
+        const updateOldPosition = db.updatePosition(value1.position, 0, 0, value1.weight, value1.volume).then((value3)=>{
+          const updateNewPosition = db.updatePosition(req.body.position, value1.weight, value1.volume, 0, 0).then((value4)=>{
+            return res.status(200).json({ message: "operation completed"})
+          }).catch((err) => {
+            return res
+              .status(422)
+              .json({ message: "error during new position update" });
+          }) //update new position 
+        }).catch((err) => {
+          return res
+            .status(422)
+            .json({ message: "error during old position update" });
+        }) //update old position 
+      }).catch((err) => {
+        return res
+          .status(422)
+          .json({ message: "error during sku position update" });
+      }) //update sku position     
+    }).catch((err) => {
+      return res
+        .status(422)
+        .json({ message: "error looking for sku" });
+    }) //return sku
 
   });
-
-  //5) api/sku/:id/position
 
   // DELETE
 
   //6) api/skus/:id
+
+  app.delete("/api/skus/:id", async (req, res)=>{
+
+    //check for errors
+    const id = req.params.id;
+    if (req.params.id === "undefined") {
+      return res.status(422).json({ error: "no id" });
+    }
+
+    const sku = await db.returnSku(id).then((value)=>{
+      if(value===undefined){
+        return res.status(503).json({error: "no sku found"})
+      }
+      if(value.position!=null){
+        const updatePosition = db.updatePosition(value.position, 0 , 0, value.weight, value.volume).then(()=>{
+          console.log("updated position")
+          }).catch(()=>{
+            console.log("updating error")
+        })
+      }
+      const deleteSku = db.deleteSku(id).then(()=>{
+        return res.status(202).json({message: "sku deleted"})
+      })
+    }).catch((err)=>{
+      return res.status(204).json({message: "no sku"})
+    })
+  })
 
   // ############ SKU ITEM ############
 
@@ -172,6 +274,8 @@ async function main() {
   // PUT
 
   //15) api/position/:positionID
+
+  //16) /api/position/:positionID/changeID
 
   // activate the server
   app.listen(port, () => {

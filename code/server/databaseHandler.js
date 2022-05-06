@@ -1,4 +1,5 @@
 class DAD {
+
   sqlite = require("sqlite3");
 
   constructor(dbname) {
@@ -86,7 +87,6 @@ class DAD {
   }
 
   //api 4
-
   async updateSku(
     id,
     newDescription,
@@ -133,6 +133,36 @@ class DAD {
         }
       });
     });
+  }
+
+  //api 5
+  async updateSkuPosition(id, newPosition){
+    const sql = "UPDATE skus SET position=? WHERE id=?"
+    const list = [newPosition, id]
+    return new Promise((resolve, reject)=>{
+      this.db.run(sql, list, (err)=>{
+        if(err){
+          return reject(err)
+        }else{
+          resolve(1)
+        }
+      })
+    })
+  }
+
+  //api 6
+  async deleteSku(id){
+    const sql = "DELETE FROM skus WHERE id=?"
+    const list = [id]
+    return new Promise((resolve, reject)=>{
+      this.db.run(sql, list, (err)=>{
+        if(err){
+          reject(err)
+        }else{
+          resolve(1)
+        }
+      })
+    })
   }
 }
 
