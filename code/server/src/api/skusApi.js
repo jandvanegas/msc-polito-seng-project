@@ -4,7 +4,7 @@ function skusApi(skuDao, positionDao) {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-        const sku = skuDao.getBySkuId(req.params.id);
+        const sku = skuDao.getById(req.params.id);
 
         sku.then((value) => {
             let message = {
