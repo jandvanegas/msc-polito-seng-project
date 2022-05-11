@@ -4,6 +4,7 @@ function testDescriptorsDao(db) {
     const baseDaoInstance = baseDao(db, "testDescriptors", "id")
     const getAll = baseDaoInstance.getAll
     const getById = baseDaoInstance.getById
+    const remove = baseDaoInstance.remove
 
     const add = (name, procedureDescription, idSKU) => {
         return new Promise((resolve, reject) => {
@@ -23,10 +24,37 @@ function testDescriptorsDao(db) {
             });
         });
     }
+
+    const update = (
+        id,
+        newName,
+        newProcedureDescription,
+        newIdSKU,
+    ) => {
+        const sql =
+            "UPDATE testDescriptors SET name=?, procedureDescription=?, idSKU=? WHERE id=? ";
+        const list = [
+            newName,
+            newProcedureDescription,
+            newIdSKU,
+            id,
+        ];
+        return new Promise((resolve, reject) => {
+            db.run(sql, list, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(1);
+                }
+            });
+        });
+    }
     return {
         getAll: getAll,
         getById: getById,
-        add: add
+        add: add,
+        update: update,
+        remove: remove
     }
 }
 
