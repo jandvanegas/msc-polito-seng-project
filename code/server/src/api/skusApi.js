@@ -135,13 +135,12 @@ function skusApi(skuDao, positionDao) {
         }
         //check for authorization
 
-        const sku = await db
-            .returnSku(req.params.id)
+        await skuDao
+            .getById(req.params.id)
             .then((value1) => {
-                const updateSkuPosition = skuDao
-                    .updatePosition(req.params.id, req.body.position)
+                skuDao.updatePosition(req.params.id, req.body.position)
                     .then((value2) => {
-                        const updateOldPosition = positionDao
+                        positionDao
                             .update(
                                 value1.position,
                                 0,
@@ -150,7 +149,7 @@ function skusApi(skuDao, positionDao) {
                                 value1.volume
                             )
                             .then((value3) => {
-                                const updateNewPosition = positionDao
+                                positionDao
                                     .update(
                                         req.body.position,
                                         value1.weight,

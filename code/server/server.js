@@ -53,6 +53,8 @@ app.delete("/api/position/:id", positionsApiInstance.remove);
 app.get("/api/testDescriptors", testDescriptorsApiInstance.getAll)
 app.post("/api/testDescriptor", testDescriptorsApiInstance.add)
 app.get("/api/testDescriptor/:id", testDescriptorsApiInstance.getById);
+app.put("/api/testDescriptor/:id", testDescriptorsApiInstance.update);
+app.delete("/api/testDescriptor/:id", testDescriptorsApiInstance.remove);
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
