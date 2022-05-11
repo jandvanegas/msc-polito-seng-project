@@ -13,8 +13,12 @@ function migrate(migrationDao) {
     const sql3 =
         "CREATE TABLE IF NOT EXISTS skuItems (RFID VARCHAR PRIMARY KEY, SKUId INT NOT NULL, Available INT NOT NULL, DateOfStock VARCHAR NOT NULL)";
     migrationDao.run(sql3);
-    console.log("Migrations done")
+    // create test descriptors
+    const createTestDescriptors =
+        "CREATE TABLE IF NOT EXISTS testDescriptors (id INTEGER PRIMARY KEY, name VARCHAR NOT NULL, procedureDescription VARCHAR NOT NULL, idSKU INTEGER NOT NULL)";
+    migrationDao.run(createTestDescriptors);
 
+    console.log("Migrations done")
 }
 
 module.exports = migrate

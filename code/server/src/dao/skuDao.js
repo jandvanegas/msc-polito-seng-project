@@ -1,28 +1,11 @@
+const {baseDao} = require("./dao");
+
 function skuDao(db) {
-    const getAll = () => {
-        return new Promise((resolve, reject) => {
-            const sql = "SELECT * FROM skus";
-            db.all(sql, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
-    }
-    const getById = (id) => {
-        return new Promise((resolve, reject) => {
-            const sql = "SELECT * FROM skus WHERE id=?";
-            db.all(sql, [id], (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row[0]);
-                }
-            });
-        });
-    }
+    const baseDaoInstance = baseDao(db, "skus", "id")
+    const remove = baseDaoInstance.remove
+    const getById = baseDaoInstance.getById
+    const getAll = baseDaoInstance.getAll
+
     const add = (description, weight, volume, notes, price, availableQuantity) => {
         return new Promise((resolve, reject) => {
             const sql =
@@ -81,19 +64,6 @@ function skuDao(db) {
             db.run(sql, list, (err) => {
                 if (err) {
                     return reject(err);
-                } else {
-                    resolve(1);
-                }
-            });
-        });
-    }
-    const remove = (id) => {
-        const sql = "DELETE FROM skus WHERE id=?";
-        const list = [id];
-        return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
-                if (err) {
-                    reject(err);
                 } else {
                     resolve(1);
                 }

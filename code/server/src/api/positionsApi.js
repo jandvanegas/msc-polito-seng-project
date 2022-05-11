@@ -5,7 +5,8 @@ function positionsApi(positionDao) {
             .then((value) => {
                 res.status(200).json(value);
             })
-            .catch(() => {
+            .catch((error) => {
+                console.error(error)
                 res.status(500).json({error: "generic error"});
             });
     }
@@ -87,11 +88,31 @@ function positionsApi(positionDao) {
         })
 
     }
+    const remove = async (req, res) => {
+        const id = req.params.id;
+        if (req.params.id === undefined) {
+            return res.status(422).json({error: "no id"});
+        }
+        await positionDao
+            .getById(id)
+            .then((value) => {
+                if (value === undefined) {
+                    return res.status(404).json({error: "no position found"});
+                }
+                positionDao.remove(id).then(() => {
+                    return res.status(202).json({message: "position deleted"});
+                });
+            })
+            .catch((err) => {
+                return res.status(204).json({message: "position sku"});
+            });
+    }
     return {
         getAll: getAll,
         add: add,
         updateFull: updateFull,
-        update: update
+        update: update,
+        remove: remove,
     }
 }
 

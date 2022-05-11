@@ -31,4 +31,51 @@ function migrationDao(db) {
     }
 }
 
-module.exports = migrationDao;
+function baseDao(db, table, idName) {
+    const getAll = () => {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM ${table} `;
+            db.all(sql, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+    const remove = (id) => {
+        const sql = `DELETE FROM ${table} WHERE ${idName}=?`;
+        const list = [id];
+        return new Promise((resolve, reject) => {
+            db.run(sql, list, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(1);
+                }
+            });
+        });
+    }
+    const getById = (id) => {
+        const sql = `SELECT * FROM ${table} WHERE ${idName}=?`;
+        const list = [id];
+        return new Promise((resolve, reject) => {
+            db.all(sql, list, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows[0]);
+                }
+            });
+        });
+    }
+
+    return {
+        remove: remove,
+        getAll: getAll,
+        getById: getById
+    }
+}
+
+module.exports = {baseDao, migrationDao};
