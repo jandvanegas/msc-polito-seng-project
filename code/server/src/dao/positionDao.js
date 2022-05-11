@@ -1,4 +1,10 @@
+const {baseDao} = require('./dao')
+
 function positionDao(db) {
+    const baseDaoInstance = baseDao(db, "positions", "position")
+    const remove = baseDaoInstance.remove
+    const getById = baseDaoInstance.getById
+    const getAll = baseDaoInstance.getAll
 
     const update = (position, newWeight, newVolume, oldWeight, oldVolume) => {
         const sql = "UPDATE positions SET occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE position=? ";
@@ -24,19 +30,6 @@ function positionDao(db) {
                     reject(err);
                 } else {
                     resolve(1);
-                }
-            });
-        });
-    }
-    const getById = (id) => {
-        const sql = "SELECT * FROM positions WHERE position=?";
-        const list = [id];
-        return new Promise((resolve, reject) => {
-            db.all(sql, list, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows[0]);
                 }
             });
         });
@@ -91,11 +84,13 @@ function positionDao(db) {
         })
     }
     return {
+        remove: remove,
         add: add,
         update: update,
         getById: getById,
         updateFull: updateFull,
         updateId: updateId,
+        getAll: getAll
     }
 
 }
