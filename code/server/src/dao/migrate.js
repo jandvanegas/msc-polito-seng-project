@@ -17,7 +17,14 @@ function migrate(migrationDao) {
     const createTestDescriptors =
         "CREATE TABLE IF NOT EXISTS testDescriptors (id INTEGER PRIMARY KEY, name VARCHAR NOT NULL, procedureDescription VARCHAR NOT NULL, idSKU INTEGER NOT NULL)";
     migrationDao.run(createTestDescriptors);
+    //
+    const createTestResult =
+        "CREATE TABLE IF NOT EXISTS testResults (id Integer PRIMARY key autoincrement, rfid VARCHAR NOT NULL, idTestDescriptor VARCHAR NOT NULL, Date VARCHAR NOT NULL, Result Integer NOT NULL default 0)";
+    migrationDao.run(createTestResult);
 
+    const createUserTable =
+        "CREATE TABLE IF NOT EXISTS users (id Integer PRIMARY key autoincrement, name VARCHAR NOT NULL, surname VARCHAR NOT NULL, email VARCHAR NOT NULL, type VARCHAR NOT NULL, loggedIn Integer NOT NULL default 0)";
+    migrationDao.run(createUserTable);
     console.log("Migrations done")
 }
 

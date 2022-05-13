@@ -65,7 +65,7 @@ function baseDao(db, table, idName) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows[0]);
+                    resolve(rows);
                 }
             });
         });
