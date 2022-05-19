@@ -9,6 +9,8 @@ const positionDao = require('./src/dao/positionDao')
 const testResultApi = require('./src/api/testResults')
 const usersApi = require('./src/api/userApi')
 
+const skuService = require('./src/service/skuService')
+
 const skusApi = require('./src/api/skusApi')
 const skuItemsApi = require('./src/api/skuItemsApi')
 const positionsApi = require('./src/api/positionsApi')
@@ -28,26 +30,29 @@ const daoInstance = migrationDao(db)
 migrate(daoInstance)
 
 
-const skuDaoInstance = skuDao(db)
+const mySkuDao = skuDao(db)
 const skuItemDaoInstance = skuItemDao(db)
-const positionDaoInstance = positionDao(db)
+const myPositionDao = positionDao(db)
 const testDescriptorsDaoInstance = testDescriptorsDao(db)
 const testResultDaoInstance = testResultDao(db)
 const userDaoInstance = userDao(db)
 
-const skusApiInstance = skusApi(skuDaoInstance, positionDaoInstance)
+const mySkuService = skuService(mySkuDao, myPositionDao)
+
+const mySkuApi = skusApi(mySkuService)
 const skuItemsApiInstance = skuItemsApi(skuItemDaoInstance)
-const positionsApiInstance = positionsApi(positionDaoInstance)
+const positionsApiInstance = positionsApi(myPositionDao)
 const testDescriptorsApiInstance = testDescriptorsApi(testDescriptorsDaoInstance)
 const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
 
-app.get("/api/skus", skusApiInstance.getAll);
-app.get("/api/skus/:id", skusApiInstance.getById);
-app.post("/api/sku", skusApiInstance.add);
-app.put("/api/sku/:id", skusApiInstance.updateById);
-app.put("/api/sku/:id/position", skusApiInstance.updatePosition);
-app.delete("/api/skus/:id", skusApiInstance.remove);
+app.get("/api/skus", mySkuApi.getAll);
+app.get("/api/skus/:id", mySkuApi.getById);
+app.post("/api/sku", mySkuApi.add);
+app.put("/api/sku/:id", mySkuApi.updateById);
+app.put("/api/sku/:id/position", mySkuApi.updatePosition);
+app.delete("/api/skus/:id", mySkuApi.remove);
+
 app.get("/api/skuitems", skuItemsApiInstance.getAll);
 app.get("/api/skuitems/sku/:id", skuItemsApiInstance.getBySkuId);
 app.get("/api/skuitems/:rfid", skuItemsApiInstance.getByRfid);

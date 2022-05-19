@@ -1,66 +1,55 @@
-function skusApi(skuDao, positionDao) {
+const {ResourceNotFoundError} = require("../utils/exceptions");
 
+function skusApi(skuService) {
     const getById = (req, res) => {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-        const sku = skuDao.getById(req.params.id);
 
-        sku.then((value) => {
-            let message = {
-                array: value,
-            };
-            if (value.length === 0) {
-                return res.status(404).json({error: "not found"});
-            } else {
-                return res.status(200).json(message);
-            }
-        }).catch((err) => {
-            let error = {
-                message: "Internal Server Error", //it works?
-            };
-            return res.status(500).json(error);
-        });
-
+        skuService.getById(req.params.id)
+            .then((sku) => {
+                return res.status(200).json(sku);
+            })
+            .catch((error) => {
+                if (error instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(error)
+                return res.status(500).end();
+            })
     }
     const getAll = (req, res) => {
-        const skusArray = skuDao.getAll();
-
-        skusArray
-            .then((value) => {
-                let message = {
-                    array: value,
-                };
-                return res.status(200).json(message);
+        skuService.getAll()
+            .then((skus) => {
+                return res.status(200).json(skus);
             })
-            .catch((err) => {
-                console.log(err);
-            });
+            .catch((error) => {
+                console.log(error)
+                return res.status(500).end();
+            })
     }
     const add = (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
-
-        const sku = skuDao.add(
+        skuService.add(
             req.body.description,
             req.body.weight,
             req.body.volume,
             req.body.notes,
             req.body.price,
             req.body.availableQuantity
-        );
-
-        sku
-            .then((value) => {
-                return res.status(201).json({message: "created"});
+        )
+            .then(() => {
+                return res.status(201).end();
             })
             .catch((err) => {
-                return res.status(503).json({error: "generic error"});
+                console.log(err)
+                return res.status(500).end();
             });
     }
-    const updateById = async (req, res) => {
-        //check for errors
+
+    const updateById = (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -69,63 +58,27 @@ function skusApi(skuDao, positionDao) {
             return res.status(422).json({error: "no id"});
         }
 
-        await skuDao.getById(id)
-            .then((value) => {
-                //update the sku
-                const updateSku = skuDao.updateSku(
-                    id,
-                    req.body.newDescription,
-                    req.body.newWeight,
-                    req.body.newVolume,
-                    req.body.newNotes,
-                    req.body.newPrice,
-                    req.body.newAvailableQuantity
-                );
-                updateSku
-                    .then(() => {
-                        //check for position
-                        console.log(value.position);
-                        if (value.position === null) {
-                            //no update the position
-                            return res.status(200).json({message: "updated sku only"});
-                        } else {
-                            //update the position
-                            const updatePosition = positionDao.update(
-                                value.position,
-                                req.body.newWeight,
-                                req.body.newVolume,
-                                value.weight,
-                                value.volume
-                            );
-                            updatePosition
-                                .then(() => {
-                                    return res.status(200).json({
-                                        message: "updated sku and it's relative position",
-                                    });
-                                })
-                                .catch((err) => {
-                                    //update position catch
-                                    return res
-                                        .status(422)
-                                        .json({message: "error during position update"});
-                                });
-                        }
-                    })
-                    .catch((err) => {
-                        //sku updating catch
-                        console.log(err);
-                        return res
-                            .status(503)
-                            .json({message: "error during updating sku"});
-                    });
+        skuService.updateById(
+            id,
+            newDescription,
+            newWeight,
+            newVolume,
+            newNotes,
+            newPrice,
+            newAvailableQuantity
+        )
+            .then(() => {
+                return res.status(200).end();
             })
             .catch((err) => {
-                //sku searching catch
-                return res.status(404).json({message: "sku not found"});
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(503).end();
             });
     }
-    const updatePosition = async (req, res) => {
-        //check for errors
+    const updatePosition = (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -133,86 +86,35 @@ function skusApi(skuDao, positionDao) {
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-        //check for authorization
+        const position = req.params.position;
 
-        await skuDao
-            .getById(req.params.id)
-            .then((value1) => {
-                skuDao.updatePosition(req.params.id, req.body.position)
-                    .then((value2) => {
-                        positionDao
-                            .update(
-                                value1.position,
-                                0,
-                                0,
-                                value1.weight,
-                                value1.volume
-                            )
-                            .then((value3) => {
-                                positionDao
-                                    .update(
-                                        req.body.position,
-                                        value1.weight,
-                                        value1.volume,
-                                        0,
-                                        0
-                                    )
-                                    .then((value4) => {
-                                        return res
-                                            .status(200)
-                                            .json({message: "operation completed"});
-                                    })
-                                    .catch((err) => {
-                                        return res
-                                            .status(422)
-                                            .json({message: "error during new position update"});
-                                    }); //update new position
-                            })
-                            .catch((err) => {
-                                return res
-                                    .status(422)
-                                    .json({message: "error during old position update"});
-                            }); //update old position
-                    })
-                    .catch((err) => {
-                        return res
-                            .status(422)
-                            .json({message: "error during sku position update"});
-                    }); //update sku position
+        skuService.updatePosition(id, position)
+            .then(() => {
+                return res.status(200).end();
             })
             .catch((err) => {
-                return res.status(422).json({message: "error looking for sku"});
-            }); //return sku
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(503).end();
+            });
     }
     const remove = async (req, res) => {
-        //check for errors
         const id = req.params.id;
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-
-        const sku = await skuDao
-            .getById(id)
-            .then((value) => {
-                if (value === undefined) {
-                    return res.status(503).json({error: "no sku found"});
-                }
-                if (value.position != null) {
-                    const updatePosition = positionDao
-                        .update(value.position, 0, 0, value.weight, value.volume)
-                        .then(() => {
-                            console.log("updated position");
-                        })
-                        .catch(() => {
-                            console.log("updating error");
-                        });
-                }
-                const deleteSku = skuDao.remove(id).then(() => {
-                    return res.status(202).json({message: "sku deleted"});
-                });
+        skuService.remove(id)
+            .return(() => {
+                return res.status(202).end();
             })
             .catch((err) => {
-                return res.status(204).json({message: "no sku"});
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(503).end();
             });
     }
     return {

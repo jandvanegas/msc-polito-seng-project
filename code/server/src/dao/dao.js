@@ -1,3 +1,5 @@
+const {ResourceNotFoundError} = require("../utils/exceptions");
+
 function migrationDao(db) {
     const dropTable = (name) => {
         return new Promise((resolve, reject) => {
@@ -65,7 +67,10 @@ function baseDao(db, table, idName) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError('Sku not found'))
                 }
             });
         });
