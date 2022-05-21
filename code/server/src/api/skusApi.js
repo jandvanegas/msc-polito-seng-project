@@ -11,11 +11,11 @@ function skusApi(skuService) {
             .then((sku) => {
                 return res.status(200).json(sku);
             })
-            .catch((error) => {
-                if (error instanceof ResourceNotFoundError) {
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
                     return res.status(404).end();
                 }
-                console.log(error)
+                console.log(err)
                 return res.status(500).end();
             })
     }
@@ -24,8 +24,8 @@ function skusApi(skuService) {
             .then((skus) => {
                 return res.status(200).json(skus);
             })
-            .catch((error) => {
-                console.log(error)
+            .catch((err) => {
+                console.log(err)
                 return res.status(500).end();
             })
     }

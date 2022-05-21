@@ -10,6 +10,7 @@ const testResultApi = require('./src/api/testResults')
 const usersApi = require('./src/api/userApi')
 
 const skuService = require('./src/service/skuService')
+const skuItemService = require("./src/service/skuItemService");
 const positionService = require('./src/service/positionService')
 
 const skusApi = require('./src/api/skusApi')
@@ -40,10 +41,11 @@ migrate(daoInstance)
 //DAO
 const mySkuDao = skuDao(db)
 const myPositionDao = positionDao(db)
+const mySkuItemDao = skuItemDao(db)
+
 const returnOrdersDaoInstance = returnOrdersDao(db)
 const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
-const skuItemDaoInstance = skuItemDao(db)
 const testDescriptorsDaoInstance = testDescriptorsDao(db)
 const testResultDaoInstance = testResultDao(db)
 const userDaoInstance = userDao(db)
@@ -51,11 +53,13 @@ const userDaoInstance = userDao(db)
 // Services
 const mySkuService = skuService(mySkuDao, myPositionDao)
 const myPositionService = positionService(myPositionDao)
+const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
 
 // Api
 const mySkuApi = skusApi(mySkuService)
 const myPositionApi = positionsApi(myPositionService)
-const skuItemsApiInstance = skuItemsApi(skuItemDaoInstance)
+const mySkuItemsApi = skuItemsApi(mySkuItemService)
+
 const testDescriptorsApiInstance = testDescriptorsApi(testDescriptorsDaoInstance)
 const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
@@ -63,6 +67,7 @@ const returnOrdersApiInstance =returnOrdersApi(returnOrdersDaoInstance)
 const internalOrdersApiInstance =internalOrdersApi(internalOrdersDaoInstance)
 const itemApiInstance = itemApi(itemDaoInstance)
 
+// sku
 app.get("/api/skus", mySkuApi.getAll);
 app.get("/api/skus/:id", mySkuApi.getById);
 app.post("/api/sku", mySkuApi.add);
@@ -70,12 +75,13 @@ app.put("/api/sku/:id", mySkuApi.updateById);
 app.put("/api/sku/:id/position", mySkuApi.updatePosition);
 app.delete("/api/skus/:id", mySkuApi.remove);
 
-app.get("/api/skuitems", skuItemsApiInstance.getAll);
-app.get("/api/skuitems/sku/:id", skuItemsApiInstance.getBySkuId);
-app.get("/api/skuitems/:rfid", skuItemsApiInstance.getByRfid);
-app.post("/api/skuitem", skuItemsApiInstance.add);
-app.put("/api/skuitems/:rfid", skuItemsApiInstance.update);
-app.delete("/api/skuitems/:rfid", skuItemsApiInstance.remove);
+// skuitems
+app.get("/api/skuitems", mySkuItemsApi.getAll);
+app.get("/api/skuitems/sku/:skuID", mySkuItemsApi.getBySkuId);
+app.get("/api/skuitems/:rfid", mySkuItemsApi.getByRfid);
+app.post("/api/skuitem", mySkuItemsApi.add);
+app.put("/api/skuitems/:rfid", mySkuItemsApi.update);
+app.delete("/api/skuitems/:rfid", mySkuItemsApi.remove);
 
 //position
 app.get("/api/positions", myPositionApi.getAll);

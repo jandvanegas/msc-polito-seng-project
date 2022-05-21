@@ -1,120 +1,117 @@
-function skuItemsApi(skuItemsDao) {
+const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
+
+function skuItemsApi(skuItemService) {
+    const apiHelper = helper()
     const getAll = async (req, res) => {
-        const result = await skuItemsDao
-            .getAll()
-            .then((value) => {
-                return res.status(200).json(value);
+        skuItemService.getAll()
+            .then((rows) => {
+                return res.status(200).json(rows);
             })
             .catch((err) => {
+                console.log(err)
                 return res.status(503).json({error: "Internal server error"});
             });
     }
     const getBySkuId = async (req, res) => {
-        const id = Number(req.params.id)
-        if (isNaN(id)) {
+        const skuID = Number(req.params.skuID)
+        if (isNaN(skuID)) {
             return res.status(422).json({error: "invalid id"});
         }
-
-        const result = await skuItemsDao
-            .getBySkuId(req.params.id)
-            .then((value) => {
-                if (value.length === 0) {
-                    return res.status(404).json({error: "items not found"});
-                }
-                return res.status(200).json(value);
+        skuItemService.getBySkuId(skuID)
+            .then((skuItem) => {
+                return res.status(200).json(skuItem);
             })
-            .catch(() => {
-                return res.status(503).json({error: "generic error"});
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(500).end();
             });
     }
     const getByRfid = async (req, res) => {
-
-        if (req.params.rfid === undefined || isNaN(Number(req.params.rfid)) || req.params.rfid.length>32 || req.params.rfid.length<32) {
+        const rfid = req.params.rfid;
+        if (isNaN(Number(rfid)) || rfid.length !== 32) {
             return res.status(422).json({error: "rfid error"});
         }
-        const result = await skuItemsDao
-            .getByRfid(req.params.rfid)
+        await skuItemService.getByRfid(rfid)
             .then((value) => {
-                if (value.length === 0) {
-                    return res.status(404).json({error: "sku item not found"});
-                } else {
-                    return res.status(200).json({value});
-                }
+                return res.status(200).json({value});
             })
-            .catch(() => {
-                return res.status(500).json({error: "general error"});
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(500).end();
             });
     }
     const add = async (req, res) => {
-        // || !(req.body.SKUId instanceof Number) || !(req.body.DateOfStock instanceof Number)
-        console.log(typeof(typeof(req.body.RFID)))
-        if (Object.keys(req.body).length === 0 || typeof(req.body.RFID)!=="string" || typeof(req.body.SKUId)!=="number" || typeof(req.body.DateOfStock)!=="string") {
-            return res
-                .status(422)
-                .json({error: "validation of the body request failed"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['RFID', 'string'],
+                    ['SKUId', 'number'],
+                    ['DateOfStock', 'string'],
+                ], [
+                    isNaN(req.params.rfid)
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
 
-        const add = await skuItemsDao
-            .getBySkuId(req.body.SKUId)
+        skuItemService.add(req.body.RFID, req.body.SKUId, req.body.DateOfStock)
             .then((value) => {
-                if (value === undefined) {
-                    res.status(404).json({error: "no sku for the specified Sku id"});
-                } else {
-                    const createdSkuItem = skuItemsDao
-                        .add(req.body.RFID, req.body.SKUId, req.body.DateOfStock)
-                        .then((value) => {
-                            res.status(201).json({message: "sku item created"});
-                        })
-                        .catch(() => {
-                            res.status(503).json({error: "generic error"});
-                        });
-                }
+                return res.status(201).json(value);
             })
-            .catch(() => {
-                res.status(404).json({error: "no sku for the specified Sku id"});
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(500).end();
             });
     }
     const update = async (req, res) => {
-        // 200, 503
-
-        if (isNaN(Number(req.params.rfid)) || Number(req.params.rfid)>32 || Number(req.params.rfid)<32 || Object.keys(req.body).length === 0 || typeof(req.body.newRFID)!=="string" || typeof(req.body.newAvailable)!=="number" || typeof(req.body.newDateOfStock)!=="string" ) {
-            return res.status(422).json({error: "body or params validation error"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['newRFID', 'string'],
+                    ['SKUId', 'number'],
+                    ['newDateOfStock', 'string'],
+                    ['newAvailable', 'number'],
+                ], [
+                    !isNaN(req.params.rfid),
+                    req.params.rfid.length === 32,
+                    req.body.newRFID.length === 32,
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
 
-        const skuItem = skuItemsDao
-            .getByRfid(req.params.rfid)
-            .then((value) => {
-                if (value.length === 0) {
-                    res.status(404).json({error: "sku item not found"});
-                } else {
-                    const update = skuItemsDao
-                        .update(
-                            req.params.rfid,
-                            value[0].Available,
-                            req.body.newAvailable,
-                            req.body.newDateOfStock,
-                            req.body.newRFID
-                        )
-                        .then(() => {
-                            res.status(200).json({message: "sku item updated"});
-                        })
-                        .catch(() => {
-                            res.status(503).json({error: "error during update sku item"});
-                        });
-                }
+        skuItemService.update(
+            req.params.rfid,
+            req.body.newAvailable,
+            req.body.newDateOfStock,
+            req.body.newRFID
+        )
+            .then(() => {
+                res.status(200).json({message: "sku item updated"});
             })
-            .catch(() => {
-                res.status(503).json({message: "generic error"});
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(500).end();
             });
     }
     const remove = async (req, res) => {
-        // 204, 422, 503
-
-
-        if (isNaN(Number(req.params.rfid)) || Number(req.params.rfid.length)>32 || Number(req.params.rfid.length)<32) {
+        if (isNaN(Number(req.params.rfid)) || req.params.rfid.length !== 32) {
             return res.status(422).json({error: "body or params validation error"});
         }
-        const result = await skuItemsDao
+        await skuItemService
             .remove(req.params.rfid)
             .then(() => {
                 res.status(204).json({message: "sku item deleted"});

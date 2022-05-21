@@ -1,3 +1,5 @@
+const {ResourceNotFoundError} = require("../utils/exceptions");
+
 function skuItemDao(db) {
     const getAll = () => {
         const sql = "SELECT * FROM skuItems";
@@ -14,15 +16,14 @@ function skuItemDao(db) {
     const getBySkuId = (skuId) => {
         const sql = "SELECT RFID, SKUId, DateOfStock FROM skuItems WHERE SKUId=?";
         return new Promise((resolve, reject) => {
-            db.all(sql, [skuId], (err, rows) => {
+            db.all(sql, [skuId], function(err, rows) {
                 if (err) {
                     reject(err);
                 } else {
-                    if (rows.lenght === 0) {
-                        reject(err);
-                    } else {
-                        resolve(rows);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
                     }
+                    reject(new ResourceNotFoundError('Sku item not found'))
                 }
             });
         });
@@ -45,11 +46,11 @@ function skuItemDao(db) {
             "INSERT INTO skuItems (RFID, SKUId, Available, DateOfStock) VALUES (?, ?, 0, ?);";
         const list = [rfid, skuId, dateOfStock];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -71,11 +72,11 @@ function skuItemDao(db) {
             rfid,
         ];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -84,11 +85,11 @@ function skuItemDao(db) {
         const sql = "DELETE FROM skuItems WHERE rfid=?";
         const list = [rfid];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });

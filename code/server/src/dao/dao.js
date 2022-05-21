@@ -70,7 +70,7 @@ function baseDao(db, table, idName) {
                     if (rows.length > 0) {
                         resolve(rows[0])
                     }
-                    reject(new ResourceNotFoundError('Sku not found'))
+                    reject(new ResourceNotFoundError('Resource not found'))
                 }
             });
         });
