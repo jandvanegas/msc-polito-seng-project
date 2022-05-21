@@ -1,11 +1,12 @@
 const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function skusApi(skuService) {
+    const apiHelper = helper()
     const getById = (req, res) => {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-
         skuService.getById(req.params.id)
             .then((sku) => {
                 return res.status(200).json(sku);
@@ -29,9 +30,19 @@ function skusApi(skuService) {
             })
     }
     const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['description', 'string'],
+                    ['notes', 'string'],
+                    ['weight', 'number'],
+                    ['price', 'number'],
+                    ['availableQuantity', 'number'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
+
         skuService.add(
             req.body.description,
             req.body.weight,
@@ -50,8 +61,18 @@ function skusApi(skuService) {
     }
 
     const updateById = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['newDescription', 'string'],
+                    ['newNotes', 'string'],
+                    ['newWeight', 'number'],
+                    ['newVolume', 'number'],
+                    ['newPrice', 'number'],
+                    ['availableQuantity', 'number'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
         const id = req.params.id;
         if (req.params.id === undefined) {
@@ -79,8 +100,13 @@ function skusApi(skuService) {
             });
     }
     const updatePosition = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['position', 'number'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
         const id = req.params.id;
         if (req.params.id === undefined) {

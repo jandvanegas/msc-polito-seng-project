@@ -13,6 +13,10 @@ class ResourceNotFoundError extends DomainError {
     }
 }
 
+class ValidationError extends DomainError{
+}
+
 module.exports = {
-    ResourceNotFoundError: ResourceNotFoundError
+    ResourceNotFoundError: ResourceNotFoundError,
+    ValidationError: ValidationError
 }

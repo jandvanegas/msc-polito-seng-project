@@ -1,4 +1,5 @@
 const {baseDao} = require('./dao')
+const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function positionDao(db) {
     const baseDaoInstance = baseDao(db, "positions", "position")
@@ -10,11 +11,11 @@ function positionDao(db) {
         const sql = "UPDATE positions SET occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE position=? ";
         const list = [oldWeight, newWeight, oldVolume, newVolume, position];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -25,11 +26,11 @@ function positionDao(db) {
             "INSERT INTO positions(position, aisleID, row, col, maxWeight, maxVolume, occupiedWeight, occupiedVolume) VALUES (?,?,?,?,?,?,?,?)";
         const list = [positionID, aisleID, row, col, maxWeight, maxVolume, 0, 0];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -61,24 +62,27 @@ function positionDao(db) {
             positionID,
         ];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function(err) {
                 if (err) {
-                    reject(err)
+                    reject(err);
                 } else {
-                    resolve(1)
+                    resolve(this.lastID);
                 }
-            })
+            });
         })
     }
     const updateId = (oldID, newID) => {
         const sql = "UPDATE positions SET position=? WHERE position=?"
         const list = [newID, oldID]
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function(err) {
                 if (err) {
                     reject(err)
                 } else {
-                    resolve(1)
+                    if(this.changes === 0){
+                        reject(new ResourceNotFoundError("Position not found"))
+                    }
+                    resolve(this.lastID)
                 }
             })
         })

@@ -10,6 +10,7 @@ const testResultApi = require('./src/api/testResults')
 const usersApi = require('./src/api/userApi')
 
 const skuService = require('./src/service/skuService')
+const positionService = require('./src/service/positionService')
 
 const skusApi = require('./src/api/skusApi')
 const skuItemsApi = require('./src/api/skuItemsApi')
@@ -38,22 +39,23 @@ migrate(daoInstance)
 
 //DAO
 const mySkuDao = skuDao(db)
+const myPositionDao = positionDao(db)
 const returnOrdersDaoInstance = returnOrdersDao(db)
 const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
 const skuItemDaoInstance = skuItemDao(db)
-const myPositionDao = positionDao(db)
 const testDescriptorsDaoInstance = testDescriptorsDao(db)
 const testResultDaoInstance = testResultDao(db)
 const userDaoInstance = userDao(db)
 
 // Services
 const mySkuService = skuService(mySkuDao, myPositionDao)
+const myPositionService = positionService(myPositionDao)
 
 // Api
 const mySkuApi = skusApi(mySkuService)
+const myPositionApi = positionsApi(myPositionService)
 const skuItemsApiInstance = skuItemsApi(skuItemDaoInstance)
-const positionsApiInstance = positionsApi(myPositionDao)
 const testDescriptorsApiInstance = testDescriptorsApi(testDescriptorsDaoInstance)
 const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
@@ -76,11 +78,11 @@ app.put("/api/skuitems/:rfid", skuItemsApiInstance.update);
 app.delete("/api/skuitems/:rfid", skuItemsApiInstance.remove);
 
 //position
-app.get("/api/positions", positionsApiInstance.getAll);
-app.post("/api/position", positionsApiInstance.add);
-app.put("/api/position/:positionID", positionsApiInstance.updateFull);
-app.put("/api/position/:positionID/changeID", positionsApiInstance.update);
-app.delete("/api/position/:positionID", positionsApiInstance.remove);
+app.get("/api/positions", myPositionApi.getAll);
+app.post("/api/position", myPositionApi.add);
+app.put("/api/position/:positionID", myPositionApi.updateFull);
+app.put("/api/position/:positionID/changeID", myPositionApi.update);
+app.delete("/api/position/:positionID", myPositionApi.remove);
 
 //test descriptor
 app.get("/api/testDescriptors", testDescriptorsApiInstance.getAll)
