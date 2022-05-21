@@ -25,7 +25,20 @@ function migrate(migrationDao) {
     const createUserTable =
         "CREATE TABLE IF NOT EXISTS users (id Integer PRIMARY key autoincrement, name VARCHAR NOT NULL, surname VARCHAR NOT NULL, email VARCHAR NOT NULL, type VARCHAR NOT NULL, loggedIn Integer NOT NULL default 0)";
     migrationDao.run(createUserTable);
-    console.log("Migrations done")
+
+    const createReturnOrders =
+        "CREATE TABLE IF NOT EXISTS returnOrders (id Integer PRIMARY key autoincrement, returnDate DATE, products TO_VARCHAR NOT NULL,restockOrderId Integer)";
+    migrationDao.run(createReturnOrders);
+
+    const createInternalOrders =
+        "CREATE TABLE IF NOT EXISTS internalOrders ( id Integer PRIMARY KEY autoincrement,issueDate DATE,state TEXT NOT NULL, products TO_VARCHAR NOT NULL,customerId Integer)";
+    migrationDao.run(createInternalOrders);
+
+    const createItem =
+        "CREATE TABLE IF NOT EXISTS item ( id Integer PRIMARY KEY autoincrement, description TEXT NOT NULL, price DOUBLE NOT NULL, SKUID Integer NOT NULL,supplierId Integer NOT NULL)";
+    migrationDao.run(createItem);
+
+    console.log("Migrations done");
 }
 
 module.exports = migrate
