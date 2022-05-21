@@ -12,6 +12,7 @@ const usersApi = require('./src/api/userApi')
 const skuService = require('./src/service/skuService')
 const skuItemService = require("./src/service/skuItemService");
 const positionService = require('./src/service/positionService')
+const returnOrderService = require("./src/service/returnOrderService");
 
 const skusApi = require('./src/api/skusApi')
 const skuItemsApi = require('./src/api/skuItemsApi')
@@ -42,8 +43,8 @@ migrate(daoInstance)
 const mySkuDao = skuDao(db)
 const myPositionDao = positionDao(db)
 const mySkuItemDao = skuItemDao(db)
+const myReturnOrdersDao = returnOrdersDao(db)
 
-const returnOrdersDaoInstance = returnOrdersDao(db)
 const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
 const testDescriptorsDaoInstance = testDescriptorsDao(db)
@@ -54,16 +55,17 @@ const userDaoInstance = userDao(db)
 const mySkuService = skuService(mySkuDao, myPositionDao)
 const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
+const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 
 // Api
 const mySkuApi = skusApi(mySkuService)
 const myPositionApi = positionsApi(myPositionService)
 const mySkuItemsApi = skuItemsApi(mySkuItemService)
+const myReturnOrdersApi =returnOrdersApi(myReturnOrderService)
 
 const testDescriptorsApiInstance = testDescriptorsApi(testDescriptorsDaoInstance)
 const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
-const returnOrdersApiInstance =returnOrdersApi(returnOrdersDaoInstance)
 const internalOrdersApiInstance =internalOrdersApi(internalOrdersDaoInstance)
 const itemApiInstance = itemApi(itemDaoInstance)
 
@@ -132,11 +134,11 @@ app.post("/api/managerSessions", userApiInstance.logInManager)
 
 
 //return order
-app.get("/api/returnOrders",returnOrdersApiInstance.getAll) //ok
-app.get("/api/returnOrders/:id",returnOrdersApiInstance.getById); //ok
-app.post("/api/returnOrder",returnOrdersApiInstance.add); //ok
+app.get("/api/returnOrders",myReturnOrdersApi.getAll) //ok
+app.get("/api/returnOrders/:id",myReturnOrdersApi.getById); //ok
+app.post("/api/returnOrder",myReturnOrdersApi.add); //ok
 //app.put("/")
-app.delete("/api/returnOrder/:id", returnOrdersApiInstance.remove); //ok
+app.delete("/api/returnOrder/:id", myReturnOrdersApi.remove); //ok
 
 //internal order
 app.get("/api/internalOrders", internalOrdersApiInstance.getAll); //ok

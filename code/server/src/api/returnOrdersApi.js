@@ -1,27 +1,41 @@
-function returnOrdersApi(returnOrdersDao) {
+const helper = require("./helper");
+const {ResourceNotFoundError} = require("../utils/exceptions");
+
+function returnOrdersApi(returnOrderService) {
+    const apiHelper = helper()
     const getAll = (req, res) => {
-        returnOrdersDao
+        returnOrderService
             .getAll()
-            .then((value) => {
-                res.status(200).json(value);
+            .then((rows) => {
+                res.status(200).json(rows);
             })
             .catch(() => {
                 res.status(500).json({error: "generic error"});
             });
     }
     const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['returnDate', 'string'],
+                    ['restockOrderId', 'number'],
+                    ['products', 'object'],
+                ], [
+                    Array.isArray(req.body.products)]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
 
-        returnOrdersDao.add(
+        returnOrderService.add(
             req.body.returnDate,
             req.body.products,
             req.body.restockOrderId,
-        ).then((value) => {
-            return res.status(201).json({message: "created"});
+        ).then((id) => {
+            console.log(`Created returnOrder ${id}`)
+            return res.status(201).end();
         })
             .catch((err) => {
+                console.log(err)
                 return res.status(503).json({error: "generic error"});
             });
     }
@@ -29,31 +43,24 @@ function returnOrdersApi(returnOrdersDao) {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-        returnOrdersDao.getById(req.params.id).then((value) => {
-            let message = {
-                array: value,
-            };
-            if (value.length === 0) {
-                return res.status(404).json({error: "not found"});
-            } else {
-                return res.status(200).json(message);
-            }
+        returnOrderService.getById(req.params.id).then((value) => {
+            return res.status(200).json(value);
         }).catch((err) => {
-            let error = {
-                message: "Internal Server Error",
-            };
-            return res.status(500).json(error);
+            if (err instanceof ResourceNotFoundError) {
+                return res.status(404).end();
+            }
+            console.log(err)
+            return res.status(500).json({error: err});
         });
 
     }
-    
-
     const remove = async (req, res) => {
         const id = req.params.id;
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-        returnOrdersDao.remove(id).then(() => {
+        returnOrderService.remove(id).then(() => {
+            console.log(`returnOrder ${id} removed`)
             return res.status(204).json({message: "returnOrder deleted"});
         }).catch((err) => {
             console.log(err)

@@ -50,11 +50,11 @@ function baseDao(db, table, idName) {
         const sql = `DELETE FROM ${table} WHERE ${idName}=?`;
         const list = [id];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });

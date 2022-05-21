@@ -15,7 +15,7 @@ function returnOrdersDao(db) {
                 JSON.stringify(products),
                 restockOrderId,
             ];
-            db.run(sql, newReturnOrders, (err) => {
+            db.run(sql, newReturnOrders, function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -23,7 +23,7 @@ function returnOrdersDao(db) {
                 }
             });
         });
-    
+
     }
     return {
         getAll: getAll,
