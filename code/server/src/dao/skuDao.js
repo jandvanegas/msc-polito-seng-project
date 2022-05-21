@@ -18,10 +18,11 @@ function skuDao(db) {
                 price,
                 availableQuantity,
             ];
-            db.run(sql, newSku, (err) => {
+            db.run(sql, newSku, function(err) {
                 if (err) {
                     reject(err);
                 } else {
+                    console.log(this.lastID)
                     resolve(this.lastID);
                 }
             });
@@ -70,6 +71,18 @@ function skuDao(db) {
             });
         });
     }
+    const deleteSkuData = () => {
+        return new Promise((resolve, reject) => {
+          const sql = 'DELETE FROM skus';
+          db.run(sql, [], function (err) {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(true);
+          })
+        })
+    }
     return {
         getAll: getAll,
         getById: getById,
@@ -77,6 +90,7 @@ function skuDao(db) {
         updateSku: updateSku,
         updatePosition: updatePosition,
         remove: remove,
+        deleteSkuData: deleteSkuData
     }
 }
 
