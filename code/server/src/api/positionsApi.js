@@ -11,7 +11,25 @@ function positionsApi(positionDao) {
             });
     }
     const add = async (req, res) => {
-        if (Object.keys(req.body).length === 0) {
+
+        if (Object.keys(req.body).length === 0 ||
+            req.body.positionID === undefined ||
+            req.body.aisleID === undefined ||
+            req.body.row === undefined ||
+            req.body.col === undefined ||
+            req.body.maxWeight === undefined ||
+            !typeof (req.body.positionID) === "string" ||
+            !typeof (req.body.aisleID) === "string" ||
+            !typeof (req.body.row) === "string" ||
+            !typeof (req.body.col) === "string" ||
+            !typeof (req.body.maxWeight) === "number" ||
+            !typeof (req.body.maxVolume) === "number" ||
+            req.body.positionID.length !== 12 ||
+            req.body.aisleID.length !== 4 ||
+            req.body.row.length !== 4 ||
+            req.body.col.length !== 4 ||
+            req.body.maxVolume === undefined
+        ) {
             return res.status(422).json({error: "body validation error"});
         }
 
@@ -33,11 +51,22 @@ function positionsApi(positionDao) {
             });
     }
     const updateFull = async (req, res) => {
-        if (
-            req.params.positionID === undefined ||
-            Object.keys(req.body).length === 0
-        ) {
+        //body
+        if (req.params.positionID === undefined ||
+            Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "body or params validation error"});
+        }
+        //undefined
+        if (req.body.newAisleID === undefined || req.body.newRow === undefined || req.body.newCol === undefined || req.body.newMaxWeight === undefined || req.body.newMaxVolume === undefined || req.body.newOccupiedWeight === undefined || req.body.newOccupiedVolume === undefined || req.params.positionID === undefined) {
+            return res.status(422).json({error: "body or params validation error"})
+        }
+        //type
+        if (!typeof (req.body.newAisleID) === "string" || !typeof (req.body.newRow) === "string" || !typeof (req.body.newCol) === "string" || !typeof (req.body.newMaxWeight) === "number" || !typeof (req.body.newMaxVolume) === "number" || !typeof (req.body.newOccupiedWeight) === "number" || !typeof (req.body.newOccupiedVolume) === "number" || !typeof (req.params.positionID) === "number") {
+            return res.status(422).json({error: "body or params validation error"})
+        }
+        //length
+        if (req.body.newAisleID.length !== 4 || req.body.newRow.length !== 4 || req.body.newCol.length !== 4) {
+            return res.status(422).json({error: "body or params validation error"})
         }
         const position = positionDao
             .getById(req.params.positionID)
@@ -70,10 +99,20 @@ function positionsApi(positionDao) {
     }
     const update = async (req, res) => { // 503
 
-        if (
-            req.params.positionID === undefined ||
-            Object.keys(req.body).length === 0
-        ) {
+        if (req.params.positionID === undefined || Object.keys(req.body).length === 0) {
+            return res.status(422).json({error: "body or params validation error"});
+        }
+
+        //undefined
+        if (req.body.newPositionID === undefined) {
+            return res.status(422).json({error: "body or params validation error"});
+        }
+        //type
+        if (!typeof (req.body.newPositionID) === "string") {
+            return res.status(422).json({error: "body or params validation error"});
+        }
+        //length
+        if (req.body.newPositionID.length !== 12) {
             return res.status(422).json({error: "body or params validation error"});
         }
 
@@ -89,8 +128,8 @@ function positionsApi(positionDao) {
 
     }
     const remove = async (req, res) => {
-        const id = req.params.id;
-        if (req.params.id === undefined) {
+        const id = req.params.positionID;
+        if (req.params.positionID === undefined) {
             return res.status(422).json({error: "no id"});
         }
         await positionDao

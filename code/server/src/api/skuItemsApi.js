@@ -10,8 +10,9 @@ function skuItemsApi(skuItemsDao) {
             });
     }
     const getBySkuId = async (req, res) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
+        const id = Number(req.params.id)
+        if (isNaN(id)) {
+            return res.status(422).json({error: "invalid id"});
         }
 
         const result = await skuItemsDao
@@ -27,9 +28,9 @@ function skuItemsApi(skuItemsDao) {
             });
     }
     const getByRfid = async (req, res) => {
-        console.log("12345678901234567890123456789015");
-        if (req.params.rfid === undefined) {
-            return res.status(422).json({error: "no rfid"});
+
+        if (req.params.rfid === undefined || isNaN(Number(req.params.rfid)) || req.params.rfid.length>32 || req.params.rfid.length<32) {
+            return res.status(422).json({error: "rfid error"});
         }
         const result = await skuItemsDao
             .getByRfid(req.params.rfid)
@@ -45,7 +46,9 @@ function skuItemsApi(skuItemsDao) {
             });
     }
     const add = async (req, res) => {
-        if (Object.keys(req.body).length === 0) {
+        // || !(req.body.SKUId instanceof Number) || !(req.body.DateOfStock instanceof Number)
+        console.log(typeof(typeof(req.body.RFID)))
+        if (Object.keys(req.body).length === 0 || typeof(req.body.RFID)!=="string" || typeof(req.body.SKUId)!=="number" || typeof(req.body.DateOfStock)!=="string") {
             return res
                 .status(422)
                 .json({error: "validation of the body request failed"});
@@ -74,7 +77,7 @@ function skuItemsApi(skuItemsDao) {
     const update = async (req, res) => {
         // 200, 503
 
-        if (req.params.rfid === undefined || Object.keys(req.body).length === 0) {
+        if (isNaN(Number(req.params.rfid)) || Number(req.params.rfid)>32 || Number(req.params.rfid)<32 || Object.keys(req.body).length === 0 || typeof(req.body.newRFID)!=="string" || typeof(req.body.newAvailable)!=="number" || typeof(req.body.newDateOfStock)!=="string" ) {
             return res.status(422).json({error: "body or params validation error"});
         }
 
@@ -107,7 +110,8 @@ function skuItemsApi(skuItemsDao) {
     const remove = async (req, res) => {
         // 204, 422, 503
 
-        if (req.params.rfid === undefined || Object.keys(req.body).length === 0) {
+
+        if (isNaN(Number(req.params.rfid)) || Number(req.params.rfid.length)>32 || Number(req.params.rfid.length)<32) {
             return res.status(422).json({error: "body or params validation error"});
         }
         const result = await skuItemsDao
