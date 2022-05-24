@@ -40,7 +40,8 @@ function skusApi(skuService) {
                 req.body.price,
                 req.body.availableQuantity
             )
-            .then(() => {
+            .then((id) => {
+                console.log(`Sku ${id} created.`)
                 return res.status(201).end();
             })
             .catch((err) => {

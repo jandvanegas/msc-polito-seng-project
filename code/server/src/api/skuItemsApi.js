@@ -21,7 +21,8 @@ function skuItemsApi(skuItemService) {
 
         skuItemService.getBySkuId(skuID)
             .then((skuItem) => {
-                return res.status(200).json(skuItem);
+                console.log(`Sku item ${skuItem} created`)
+                return res.status(201).end();
             })
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {
@@ -63,8 +64,9 @@ function skuItemsApi(skuItemService) {
         }
 
         skuItemService.add(req.body.RFID, req.body.SKUId, req.body.DateOfStock)
-            .then((value) => {
-                return res.status(201).json(value);
+            .then((id) => {
+                console.log(`skuItem ${id} created.`)
+                return res.status(201).end();
             })
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {

@@ -19,7 +19,7 @@ function migrate(migrationDao) {
     migrationDao.run(createTestDescriptors);
     //
     const createTestResult =
-        "CREATE TABLE IF NOT EXISTS testResults (id Integer PRIMARY key autoincrement, rfid VARCHAR NOT NULL, idTestDescriptor VARCHAR NOT NULL, Date VARCHAR NOT NULL, Result Integer NOT NULL default 0)";
+        "CREATE TABLE IF NOT EXISTS testResults (id Integer PRIMARY key autoincrement, rfid VARCHAR NOT NULL, idTestDescriptor INT NOT NULL, Date VARCHAR NOT NULL, Result Integer NOT NULL default 0)";
     migrationDao.run(createTestResult);
 
     const createUserTable =

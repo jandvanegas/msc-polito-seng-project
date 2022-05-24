@@ -22,7 +22,6 @@ function skuDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    console.log(this.lastID)
                     resolve(this.lastID);
                 }
             });

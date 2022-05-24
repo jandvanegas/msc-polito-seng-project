@@ -1,4 +1,5 @@
 const {baseDao} = require("./dao");
+const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function testResultDao(db) {
     const baseDaoInstance = baseDao(db, "testResults", "id")
@@ -13,7 +14,7 @@ function testResultDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows);
+                    resolve(rows)
                 }
             });
         });
@@ -27,7 +28,10 @@ function testResultDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError('Resource not found'))
                 }
             });
         });
@@ -42,7 +46,7 @@ function testResultDao(db) {
                 Date,
                 Result
             ];
-            db.run(sql, newSku, (err) => {
+            db.run(sql, newSku, function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -72,7 +76,7 @@ function testResultDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -80,12 +84,12 @@ function testResultDao(db) {
     const remove = (rfid, id) => {
         const sql = `DELETE FROM testResults WHERE rfid=? and id=?`;
         const list = [rfid, id];
-        return new Promise((resolve, reject) => {
+        return new Promise(function (resolve, reject) {
             db.run(sql, list, (err) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });

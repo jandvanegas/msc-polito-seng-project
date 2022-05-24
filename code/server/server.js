@@ -29,6 +29,7 @@ const returnOrdersApi = require('./src/api/returnOrdersApi')
 const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
 const testDescriptorService = require("./src/service/testDescriptorService");
+const testResultService = require("./src/service/testResultService");
 
 const app = new express();
 const port = 3001;
@@ -46,10 +47,10 @@ const myPositionDao = positionDao(db)
 const mySkuItemDao = skuItemDao(db)
 const myReturnOrdersDao = returnOrdersDao(db)
 const myTestDescriptorDao = testDescriptorsDao(db)
+const myTestResultDao = testResultDao(db)
 
 const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
-const testResultDaoInstance = testResultDao(db)
 const userDaoInstance = userDao(db)
 
 // Services
@@ -58,6 +59,7 @@ const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
 const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
+const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)
@@ -65,8 +67,8 @@ const myPositionApi = positionsApi(myPositionService)
 const mySkuItemsApi = skuItemsApi(mySkuItemService)
 const myReturnOrdersApi = returnOrdersApi(myReturnOrderService)
 const myTestDescriptorsApi = testDescriptorsApi(myTestDescriptorService)
+const myTestResultApi = testResultApi(myTestResultService)
 
-const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
 const internalOrdersApiInstance = internalOrdersApi(internalOrdersDaoInstance)
 const itemApiInstance = itemApi(itemDaoInstance)
@@ -103,12 +105,11 @@ app.put("/api/testDescriptor/:id", myTestDescriptorsApi.update);
 app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
 
 // test result
-app.post("/api/skuitems/testResult", testResultApiInstance.add)
-app.get("/api/skuitems/:rfid/testResults", testResultApiInstance.getByRfid)
-app.get("/api/skuitems/:rfid/testResults/:id", testResultApiInstance.getByRfidAndId)
-app.post("/api/skuitems/testResult", testResultApiInstance.add)
-app.put("/api/skuitems/:rfid/testResults/:id", testResultApiInstance.update)
-app.delete("/api/skuitems/:rfid/testResults/:id", testResultApiInstance.remove)
+app.post("/api/skuitems/testResult", myTestResultApi.add)
+app.get("/api/skuitems/:rfid/testResults", myTestResultApi.getByRfid)
+app.get("/api/skuitems/:rfid/testResults/:id", myTestResultApi.getByRfidAndId)
+app.put("/api/skuitems/:rfid/testResults/:id", myTestResultApi.update)
+app.delete("/api/skuitems/:rfid/testResults/:id", myTestResultApi.remove)
 
 //user
 app.get("/api/userinfo", userApiInstance.getInfo)
