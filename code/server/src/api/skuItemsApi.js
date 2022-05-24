@@ -18,6 +18,7 @@ function skuItemsApi(skuItemService) {
         if (isNaN(skuID)) {
             return res.status(422).json({error: "invalid id"});
         }
+
         skuItemService.getBySkuId(skuID)
             .then((skuItem) => {
                 return res.status(200).json(skuItem);
@@ -37,7 +38,7 @@ function skuItemsApi(skuItemService) {
         }
         await skuItemService.getByRfid(rfid)
             .then((value) => {
-                return res.status(200).json({value});
+                return res.status(200).json(value);
             })
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {
@@ -67,6 +68,7 @@ function skuItemsApi(skuItemService) {
             })
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {
+
                     return res.status(404).end();
                 }
                 console.log(err)
@@ -77,7 +79,6 @@ function skuItemsApi(skuItemService) {
         try {
             apiHelper.validateFields(req, res, [
                     ['newRFID', 'string'],
-                    ['SKUId', 'number'],
                     ['newDateOfStock', 'string'],
                     ['newAvailable', 'number'],
                 ], [

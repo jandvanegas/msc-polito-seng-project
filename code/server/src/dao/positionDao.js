@@ -87,6 +87,18 @@ function positionDao(db) {
             })
         })
     }
+    const deletePositionData = () => {
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM positions';
+            db.run(sql, [], function (err) {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(true);
+            })
+        })
+    }
     return {
         remove: remove,
         add: add,
@@ -94,7 +106,8 @@ function positionDao(db) {
         getById: getById,
         updateFull: updateFull,
         updateId: updateId,
-        getAll: getAll
+        getAll: getAll,
+        deletePositionData: deletePositionData,
     }
 
 }

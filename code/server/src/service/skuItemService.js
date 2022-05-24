@@ -6,7 +6,7 @@ function skuItemService(skuItemsDao, skuDao) {
         return await skuItemsDao.getBySkuId(skuId)
     }
     const getByRfid = async (rfid) => {
-        await skuItemsDao.getByRfid(rfid)
+        return await skuItemsDao.getByRfid(rfid)
     }
     const add = async (RFID, skuId, dateOfStock) => {
         await skuDao.getById(skuId)

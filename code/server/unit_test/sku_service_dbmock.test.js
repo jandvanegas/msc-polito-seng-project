@@ -1,6 +1,7 @@
 const skuService = require("../src/service/skuService");
 const skuDao = require("../src/dao/mock/mock_sku_dao");
-const skuServiceInstance = skuService(skuDao);
+const positionDao = require("../src/dao/mock/mock_position_dao");
+const skuServiceInstance = skuService(skuDao, positionDao);
 
 describe("get all skus", () => {
   beforeEach(() => {
@@ -169,7 +170,7 @@ describe("update sku", () => {
     );
     expect(res1).toEqual(undefined);
   });
-}); 
+});
 
 describe("remove sku", () => {
   beforeEach(() => {
@@ -177,7 +178,7 @@ describe("remove sku", () => {
   });
 
   test("remove sku", async () => {
-    let res1 = await skuServiceInstance.remove(1);
+    let res1 = await skuServiceInstance.remove(1)
     expect(res1).toEqual(undefined);
   });
 });
@@ -193,7 +194,6 @@ describe("remove all sku", () => {
   });
 });
 
-/*
 describe("update position", () => {
   beforeEach(() => {
     skuDao.updatePosition.mockReset();
@@ -208,4 +208,3 @@ describe("update position", () => {
     expect(res).toEqual(undefined);
   });
 });
-*/

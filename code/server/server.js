@@ -39,7 +39,7 @@ const db = new sqlite.Database("ezwh.sqlite", (err) => {
 const daoInstance = migrationDao(db)
 migrate(daoInstance)
 
-//DAO
+//DAOs
 const mySkuDao = skuDao(db)
 const myPositionDao = positionDao(db)
 const mySkuItemDao = skuItemDao(db)
@@ -57,7 +57,7 @@ const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
 const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 
-// Api
+// Apis
 const mySkuApi = skusApi(mySkuService)
 const myPositionApi = positionsApi(myPositionService)
 const mySkuItemsApi = skuItemsApi(mySkuItemService)

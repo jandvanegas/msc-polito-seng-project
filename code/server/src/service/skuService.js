@@ -52,16 +52,18 @@ function skuService(skuDao, positionDao) {
     }
   };
   const updatePosition = async (id, position) => {
+
     const sku = await skuDao.getById(id);
-    await skuDao.updatePosition(sku, position);
+    await skuDao.updatePosition(sku.id, position);
     await positionDao.update(sku.position, 0, 0, sku.weight, sku.volume);
     await positionDao.update(position, sku.weight, sku.volume, 0, 0);
   };
 
   const remove = async (id) => {
-    const sku = await skuDao.getById(id);
-    if (sku.position != null) {
-      await positionDao.update(sku.position, 0, 0, sku.weight, sku.volume);
+    const skuToDelete = await skuDao.getById(id)
+    const sku = await skuDao.remove(id);
+    if (skuToDelete.position !== undefined) {
+      await positionDao.update(skuToDelete.position, 0, 0, skuToDelete.weight, skuToDelete.volume);
     }
   };
 
@@ -75,7 +77,7 @@ function skuService(skuDao, positionDao) {
     updateById: updateById,
     updatePosition: updatePosition,
     remove: remove,
-    deleteSkuData: deleteSkuData
+    deleteSkuData: deleteSkuData,
   };
 }
 

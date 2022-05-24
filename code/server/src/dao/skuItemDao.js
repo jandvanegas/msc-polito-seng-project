@@ -18,6 +18,7 @@ function skuItemDao(db) {
         return new Promise((resolve, reject) => {
             db.all(sql, [skuId], function(err, rows) {
                 if (err) {
+
                     reject(err);
                 } else {
                     if (rows.length > 0) {
@@ -36,7 +37,7 @@ function skuItemDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(row);
+                    resolve(row[0]);
                 }
             });
         });
@@ -62,6 +63,7 @@ function skuItemDao(db) {
         newDateOfStock,
         newRFID
     ) => {
+        console.log("dao")
         const sql =
             "UPDATE skuItems SET RFID=?, Available=Available-?+?, DateOfStock=? WHERE RFID=?";
         const list = [
