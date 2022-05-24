@@ -1,30 +1,23 @@
+const userDao = require('../dao/userDao');
 const helper = require('./helper')
+const {ResourceNotFoundError} = require("../utils/exceptions");
 
-function userApi(usersDao) {
+function userApi(userService) {
     const apiHelper = helper()
 
     const userTypes = ['customer', 'qualityEmployee', 'clerk', 'deliveryEmployee', 'supplier']
     const getInfo = (req, res) => {
-        // TODO change when we know what the passport library is
-        res.status(200).json({
-            id: 1,
-            username: 'username',
-            name: 'name',
-            surname: 'surname',
-            type: 'type',
-        });
-        usersDao
-            .getInfo()
+        userService.getInfo()
             .then((value) => {
-                res.status(200).json(value);
+                return res.status(200).json(value);
             })
-            .catch(() => {
-                res.status(500).json({error: "generic error"});
+            .catch((err) => {
+                console.error(err)
+                return res.status(500).json({error: "generic error"});
             });
     }
     const getSuppliers = (req, res) => {
-        usersDao
-            .getUsersByType("suppliers")
+        userService.getSuppliers()
             .then((value) => {
                 res.status(200).json(value);
             })
@@ -33,67 +26,245 @@ function userApi(usersDao) {
             });
     }
     const getUsers = (req, res) => {
-        usersDao
-            .getAll
-            .then((value) => {
-                value.filter(user => user.type !== 'manager')
-                res.status(200).json(value);
+        userService.getAll()
+            .then((rows) => {
+                return res.status(200).json(rows);
             })
-            .catch(() => {
-                res.status(500).json({error: "generic error"});
+            .catch((err) => {
+                console.error(err)
+                return res.status(500).json({error: "generic error"});
             });
     }
     const add = (req, res) => {
-        const validation = apiHelper.validateFields(req, res, ['username', 'name', 'surname', 'password', 'type'])
-        if (validation !== undefined) {
-            return validation
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['name', 'string'],
+                    ['surname', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
-        if (!userTypes.includes(req.body.type)) {
-            return res.status(422).json({error: "invalid type"});
-        }
-        usersDao.add(
+
+        userService.add(
             req.body.username,
             req.body.name,
             req.body.surname,
             req.body.password,
             req.body.type,
-        ).then((value) => {
-            return res.status(201).end();
-        })
+        )
+            .then((id) => {
+                console.log(`User ${id} created`)
+                return res.status(201).end();
+            })
             .catch((err) => {
                 console.error(err)
                 return res.status(503).json({error: "Service Unavailable"});
             });
     }
     const logInManager = (req, res) => {
-        const validation = apiHelper.validateFields(req, res, ['username', 'password'])
-        if (validation !== undefined) {
-            return validation
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
-        usersDao.getData(req.body.username, req.body.password, 'manager').then((value) => {
-            if (value.length === 0) {
-                return res.status(401).end();
 
-            }
-            usersDao.logIn(value[0].id).then(() => {
-                return res.status(200).json(value[0]).end();
+        userService.logInManager(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logInCustomer = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+
+        userService.logInCustomer(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logInSupplier = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+        userService.logInSupplier(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logInClerk = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+        userService.logInClerk(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logInQualityEmployee = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+        userService.logInQualityEmployee(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logInDeliveryEmployee = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['username', 'string'],
+                    ['password', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+        userService.logInDeliveryEmployee(req.body.username, req.body.password)
+            .then(id => {
+                console.log(`User ${id} logged in.`)
+                return res.status(200).end();
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
+            });
+    }
+
+    const logOut = (req, res) => {
+        userService.logOut()
+            .then(() => {
+                return res.status(200).end();
             })
             .catch((err) => {
                 console.error(err)
-                return res.status(503).json({error: "Service Unavailable"});
-            });
-        })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).json({error: "Service Unavailable"});
+                return res.status(503).json({error: "Generic error"});
+            })
+    }
+
+    const update = (req, res) => {
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['newType', 'string'],
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
+        }
+        userService.update(req.params.username, req.body.newType)
+            .then(() => {
+                res.status(200).end()
+            })
+            .catch(() => {
+                res.status(503).json({error: "error during the update of user's type"})
             });
     }
+
+    const remove = (req, res) => {
+        if (req.params.username === undefined || !userTypes.includes(req.params.type)) {
+            return res.status(422).json({error: "params validation error"});
+        }
+        userService.remove(req.params.username, req.params.type)
+            .then(() => {
+                res.status(204).json({message: "user deleted"});
+            })
+            .catch(() => {
+                res.status(503).json({error: "generic error"});
+            });
+    }
+
     return {
         getInfo: getInfo,
         getSuppliers: getSuppliers,
         getUsers: getUsers,
         add: add,
-        logInManager: logInManager
+        logInManager: logInManager,
+        logInCustomer: logInCustomer,
+        logInSupplier: logInSupplier,
+        logInClerk: logInClerk,
+        logInQualityEmployee: logInQualityEmployee,
+        logInDeliveryEmployee: logInDeliveryEmployee,
+        logOut: logOut,
+        update: update,
+        remove: remove,
     }
 }
 

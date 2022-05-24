@@ -23,12 +23,16 @@ function migrate(migrationDao) {
     migrationDao.run(createTestResult);
 
     const createUserTable =
-        "CREATE TABLE IF NOT EXISTS users (id Integer PRIMARY key autoincrement, name VARCHAR NOT NULL, surname VARCHAR NOT NULL, email VARCHAR NOT NULL, type VARCHAR NOT NULL, loggedIn Integer NOT NULL default 0)";
+        "CREATE TABLE IF NOT EXISTS users (username VARCHAR PRIMARY key , name VARCHAR NOT NULL, surname VARCHAR NOT NULL, type VARCHAR NOT NULL, loggedIn Integer NOT NULL default 0)";
     migrationDao.run(createUserTable);
 
     const createReturnOrders =
         "CREATE TABLE IF NOT EXISTS returnOrders (id Integer PRIMARY key autoincrement, returnDate DATE, products TO_VARCHAR NOT NULL,restockOrderId Integer)";
     migrationDao.run(createReturnOrders);
+
+    const createRestockOrderTable = 
+        "CREATE TABLE IF NOT EXISTS restockOrders (id Integer PRIMARY key autoincrement, issueDate VARCHAR NOT NULL, state VARCHAR NOT NULL, products VARCHAR NOT NULL, supplierId Integer NOT NULL, transportNote VARCHAR, skuItems VARCHAR NOT NULL)";
+    migrationDao.run(createRestockOrderTable);
 
     const createInternalOrders =
         "CREATE TABLE IF NOT EXISTS internalOrders ( id Integer PRIMARY KEY autoincrement,issueDate DATE,state TEXT NOT NULL, products TO_VARCHAR NOT NULL,customerId Integer)";

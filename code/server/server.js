@@ -16,6 +16,8 @@ const returnOrderService = require("./src/service/returnOrderService");
 const testDescriptorService = require("./src/service/testDescriptorService");
 const testResultService = require("./src/service/testResultService");
 const internalOrderService = require("./src/service/internalOrderService");
+const userService = require("./src/service/userService")
+const restockOrderService = require("./src/service/restockOrderService")
 
 const skusApi = require('./src/api/skusApi')
 const skuItemsApi = require('./src/api/skuItemsApi')
@@ -24,6 +26,7 @@ const testDescriptorsApi = require('./src/api/testDescriptors')
 const testDescriptorsDao = require('./src/dao/testDescriptorsDao')
 const testResultDao = require('./src/dao/testResultDao')
 const userDao = require('./src/dao/userDao')
+const restockOrderDao = require('./src/dao/restockOrderDao')
 
 const returnOrdersDao = require('./src/dao/returnOrdersDao')
 const internalOrdersDao = require('./src/dao/internalOrdersDao')
@@ -32,6 +35,7 @@ const returnOrdersApi = require('./src/api/returnOrdersApi')
 const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
 const itemService = require("./src/service/itemService");
+const restockOrderApi = require('./src/api/restockOrderApi')
 
 const app = new express();
 const port = 3001;
@@ -52,8 +56,9 @@ const myTestDescriptorDao = testDescriptorsDao(db)
 const myTestResultDao = testResultDao(db)
 const myInternalOrderDao = internalOrdersDao(db)
 const myItemDao = itemDao(db)
+const myUserDao = userDao(db)
+const myRestockOrderDao = restockOrderDao(db)
 
-const userDaoInstance = userDao(db)
 
 // Services
 const mySkuService = skuService(mySkuDao, myPositionDao)
@@ -64,6 +69,8 @@ const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySku
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
 const myItemService = itemService(myItemDao)
+const myUserService = userService(myUserDao)
+const myRestockOrderService = restockOrderService(myRestockOrderDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)
@@ -74,8 +81,8 @@ const myTestDescriptorsApi = testDescriptorsApi(myTestDescriptorService)
 const myTestResultApi = testResultApi(myTestResultService)
 const myInternalOrderApi = internalOrdersApi(myInternalOrderService)
 const myItemApi = itemApi(myItemService)
-
-const userApiInstance = usersApi(userDaoInstance)
+const myUserApi = usersApi(myUserService)
+const myRestockOrderApi = restockOrderApi(myRestockOrderService)
 
 // sku
 app.get("/api/skus", mySkuApi.getAll);
@@ -116,31 +123,28 @@ app.put("/api/skuitems/:rfid/testResults/:id", myTestResultApi.update)
 app.delete("/api/skuitems/:rfid/testResults/:id", myTestResultApi.remove)
 
 //user
-app.get("/api/userinfo", userApiInstance.getInfo)
-app.get("/api/suppliers", userApiInstance.getSuppliers)
-app.get("/api/users", userApiInstance.getUsers)
-app.post("/api/newUser", userApiInstance.add)
-app.post("/api/managerSessions", userApiInstance.logInManager)
-// /api/customerSessions
-// /api/supplierSessions
-// /api/clerkSessions
-// /api/qualityEmployeeSessions
-// /api/deliveryEmployeeSessions
-// /api/logout
-// /api/users/:username
-// /api/users/:username/:type
+app.get("/api/userinfo", myUserApi.getInfo)
+app.get("/api/suppliers", myUserApi.getSuppliers)
+app.get("/api/users", myUserApi.getUsers)
+app.post("/api/newUser", myUserApi.add)
+app.post("/api/managerSessions", myUserApi.logInManager)
+app.post("/api/customerSessions", myUserApi.logInCustomer)
+app.post("/api/supplierSessions", myUserApi.logInSupplier)
+app.post("/api/clerkSessions", myUserApi.logInClerk)
+app.post("/api/QualityEmployeeSessions", myUserApi.logInQualityEmployee)
+app.post("/api/DeliveryEmployeeSessions", myUserApi.logInDeliveryEmployee)
+app.post("/api/logout", myUserApi.logOut)
+app.put("/api/users/:username", myUserApi.update)
+app.delete("/api/users/:username/:type", myUserApi.remove)
 
 //restock order
-// /api/restockOrders
-// /api/restockOrdersIssued
-// /api/restockOrders/:id
-// /api/restockOrders/:id/returnItems
-// /api/restockOrder
-// /api/restockOrder/:id
-// /api/restockOrder/:id/skuItems
-// /api/restockOrder/:id/transportNote
-// /api/restockOrder/:id
-
+app.get("/api/restockOrders", myRestockOrderApi.getAll)
+app.get("/api/restockOrdersIssued", myRestockOrderApi.getIssued)
+app.get("/api/restockOrders/:id", myRestockOrderApi.getById)
+app.get("/api/restockOrders/:id/returnItems", myRestockOrderApi.getItems)
+app.post("/api/restockOrder", myRestockOrderApi.add)
+app.put("/api/restockOrder/:id", myRestockOrderApi.update)
+app.put("/api/restockOrder/:id/skuItems", myRestockOrderApi.addItems)
 
 //return order
 app.get("/api/returnOrders", myReturnOrdersApi.getAll) //ok
