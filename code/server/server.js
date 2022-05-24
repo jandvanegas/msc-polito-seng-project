@@ -28,6 +28,7 @@ const itemDao = require('./src/dao/itemDao')
 const returnOrdersApi = require('./src/api/returnOrdersApi')
 const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
+const testDescriptorService = require("./src/service/testDescriptorService");
 
 const app = new express();
 const port = 3001;
@@ -44,10 +45,10 @@ const mySkuDao = skuDao(db)
 const myPositionDao = positionDao(db)
 const mySkuItemDao = skuItemDao(db)
 const myReturnOrdersDao = returnOrdersDao(db)
+const myTestDescriptorDao = testDescriptorsDao(db)
 
 const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
-const testDescriptorsDaoInstance = testDescriptorsDao(db)
 const testResultDaoInstance = testResultDao(db)
 const userDaoInstance = userDao(db)
 
@@ -56,17 +57,18 @@ const mySkuService = skuService(mySkuDao, myPositionDao)
 const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
 const myReturnOrderService = returnOrderService(myReturnOrdersDao)
+const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)
 const myPositionApi = positionsApi(myPositionService)
 const mySkuItemsApi = skuItemsApi(mySkuItemService)
-const myReturnOrdersApi =returnOrdersApi(myReturnOrderService)
+const myReturnOrdersApi = returnOrdersApi(myReturnOrderService)
+const myTestDescriptorsApi = testDescriptorsApi(myTestDescriptorService)
 
-const testDescriptorsApiInstance = testDescriptorsApi(testDescriptorsDaoInstance)
 const testResultApiInstance = testResultApi(testResultDaoInstance)
 const userApiInstance = usersApi(userDaoInstance)
-const internalOrdersApiInstance =internalOrdersApi(internalOrdersDaoInstance)
+const internalOrdersApiInstance = internalOrdersApi(internalOrdersDaoInstance)
 const itemApiInstance = itemApi(itemDaoInstance)
 
 // sku
@@ -93,12 +95,14 @@ app.put("/api/position/:positionID/changeID", myPositionApi.update);
 app.delete("/api/position/:positionID", myPositionApi.remove);
 
 //test descriptor
-app.get("/api/testDescriptors", testDescriptorsApiInstance.getAll)
-app.post("/api/testDescriptor", testDescriptorsApiInstance.add)
-app.get("/api/testDescriptor/:id", testDescriptorsApiInstance.getById);
-app.post("/api/testDescriptor", testDescriptorsApiInstance.add)
-app.put("/api/testDescriptor/:id", testDescriptorsApiInstance.update);
-app.delete("/api/testDescriptor/:id", testDescriptorsApiInstance.remove);
+app.get("/api/testDescriptors", myTestDescriptorsApi.getAll)
+app.post("/api/testDescriptor", myTestDescriptorsApi.add)
+app.get("/api/testDescriptor/:id", myTestDescriptorsApi.getById);
+app.post("/api/testDescriptor", myTestDescriptorsApi.add)
+app.put("/api/testDescriptor/:id", myTestDescriptorsApi.update);
+app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
+
+// test result
 app.post("/api/skuitems/testResult", testResultApiInstance.add)
 app.get("/api/skuitems/:rfid/testResults", testResultApiInstance.getByRfid)
 app.get("/api/skuitems/:rfid/testResults/:id", testResultApiInstance.getByRfidAndId)
@@ -134,9 +138,9 @@ app.post("/api/managerSessions", userApiInstance.logInManager)
 
 
 //return order
-app.get("/api/returnOrders",myReturnOrdersApi.getAll) //ok
-app.get("/api/returnOrders/:id",myReturnOrdersApi.getById); //ok
-app.post("/api/returnOrder",myReturnOrdersApi.add); //ok
+app.get("/api/returnOrders", myReturnOrdersApi.getAll) //ok
+app.get("/api/returnOrders/:id", myReturnOrdersApi.getById); //ok
+app.post("/api/returnOrder", myReturnOrdersApi.add); //ok
 //app.put("/")
 app.delete("/api/returnOrder/:id", myReturnOrdersApi.remove); //ok
 

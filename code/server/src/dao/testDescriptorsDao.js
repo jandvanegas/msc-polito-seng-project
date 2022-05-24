@@ -15,7 +15,7 @@ function testDescriptorsDao(db) {
                 procedureDescription,
                 idSKU
             ];
-            db.run(sql, newSku, (err) => {
+            db.run(sql, newSku, function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -40,11 +40,11 @@ function testDescriptorsDao(db) {
             id,
         ];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });

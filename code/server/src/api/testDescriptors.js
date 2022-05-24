@@ -1,11 +1,13 @@
-function testDescriptorsApi(testDescriptorsDao) {
+const {ResourceNotFoundError} = require("../utils/exceptions");
+
+function testDescriptorsApi(testDescriptorService) {
     const getAll = (req, res) => {
-        testDescriptorsDao
-            .getAll()
-            .then((value) => {
-                res.status(200).json(value);
+        testDescriptorService.getAll()
+            .then((rows) => {
+                res.status(200).json(rows);
             })
-            .catch(() => {
+            .catch((err) => {
+                console.log(err)
                 res.status(500).json({error: "generic error"});
             });
     }
@@ -13,15 +15,20 @@ function testDescriptorsApi(testDescriptorsDao) {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
-
-        testDescriptorsDao.add(
+        testDescriptorService.add(
             req.body.name,
             req.body.procedureDescription,
             req.body.idSKU,
-        ).then((value) => {
-            return res.status(201).json({message: "created"});
-        })
+        )
+            .then((id) => {
+                console.log(`testDescriptor ${id} created`)
+                return res.status(201).end();
+            })
             .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.error(err)
                 return res.status(503).json({error: "generic error"});
             });
     }
@@ -29,24 +36,19 @@ function testDescriptorsApi(testDescriptorsDao) {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-        testDescriptorsDao.getById(req.params.id).then((value) => {
-            let message = {
-                array: value,
-            };
-            if (value.length === 0) {
-                return res.status(404).json({error: "not found"});
-            } else {
-                return res.status(200).json(message);
+        testDescriptorService.getById(req.params.id)
+            .then((rows) => {
+                return res.status(200).json(rows);
+            }).catch((err) => {
+            if (err instanceof ResourceNotFoundError) {
+                return res.status(404).end();
             }
-        }).catch((err) => {
-            let error = {
-                message: "Internal Server Error",
-            };
-            return res.status(500).json(error);
+            console.log(err);
+            return res.status(503).end();
         });
 
     }
-    const update = async (req, res) => {
+    const update = (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -55,38 +57,38 @@ function testDescriptorsApi(testDescriptorsDao) {
             return res.status(422).json({error: "no id"});
         }
 
-        await testDescriptorsDao.getById(id)
-            .then((value) => {
-                testDescriptorsDao.update(
-                    id,
-                    req.body.newName ? req.body.newName : value.name,
-                    req.body.newProcedureDescription ? req.body.newProcedureDescription : value.procedureDescription,
-                    req.body.newIdSKU ? req.body.newIdSKU : value.idSKU,
-                ).then(() => {
-                    return res.status(200).end();
-                })
-                    .catch((err) => {
-                        console.log(err);
-                        return res.status(503).json({message: "Service Unavailable"});
-                    });
+        testDescriptorService.update(
+            id,
+            req.body.newName,
+            req.body.newProcedureDescription,
+            req.body.newIdSKU,
+        )
+            .then(() => {
+                console.log(`Test descriptor ${id} updated.`)
+                return res.status(200).end();
             })
             .catch((err) => {
-                console.log(err)
-                return res.status(404).json({message: "Not Found"});
-            });
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).end();
+            })
     }
 
-    const remove = async (req, res) => {
+    const remove = (req, res) => {
         const id = req.params.id;
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-        testDescriptorsDao.remove(id).then(() => {
-            return res.status(202).json({message: "sku deleted"});
-        }).catch((err) => {
-            console.log(err)
-            return res.status(503).json({message: "Service Unavailable"});
-        });
+        testDescriptorService.remove(id)
+            .then(() => {
+                return res.status(204).end();
+            })
+            .catch((err) => {
+                console.log(err)
+                return res.status(503).json({message: "Service Unavailable"});
+            });
     }
     return {
         getAll: getAll,
