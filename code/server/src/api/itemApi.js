@@ -24,6 +24,7 @@ function itemApi(itemDao) {
             return res.status(201).json({message: "created"});
         })
             .catch((err) => {
+                console.error(err)
                 return res.status(503).json({error: "generic error"});
             });
     }
@@ -41,6 +42,7 @@ function itemApi(itemDao) {
                 return res.status(200).json(message);
             }
         }).catch((err) => {
+            console.error(err)
             let error = {
                 message: "Internal Server Error",
             };
@@ -63,7 +65,7 @@ function itemApi(itemDao) {
     const update = async (req, res)=>{
         if (Number(req.params.id) === NaN) {
             return res.status(422).json({error: "no id"});
-        } 
+        }
         const item = itemDao.getById(req.params.id).then((value)=>{
             if(value.length===0){
                 return res.status(404).json({message: "item not found"})
@@ -77,7 +79,7 @@ function itemApi(itemDao) {
                 })
             }
         })
-       
+
 
     }
     return {

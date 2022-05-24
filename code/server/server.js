@@ -13,6 +13,9 @@ const skuService = require('./src/service/skuService')
 const skuItemService = require("./src/service/skuItemService");
 const positionService = require('./src/service/positionService')
 const returnOrderService = require("./src/service/returnOrderService");
+const testDescriptorService = require("./src/service/testDescriptorService");
+const testResultService = require("./src/service/testResultService");
+const internalOrderService = require("./src/service/internalOrderService");
 
 const skusApi = require('./src/api/skusApi')
 const skuItemsApi = require('./src/api/skuItemsApi')
@@ -28,8 +31,6 @@ const itemDao = require('./src/dao/itemDao')
 const returnOrdersApi = require('./src/api/returnOrdersApi')
 const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
-const testDescriptorService = require("./src/service/testDescriptorService");
-const testResultService = require("./src/service/testResultService");
 
 const app = new express();
 const port = 3001;
@@ -48,8 +49,8 @@ const mySkuItemDao = skuItemDao(db)
 const myReturnOrdersDao = returnOrdersDao(db)
 const myTestDescriptorDao = testDescriptorsDao(db)
 const myTestResultDao = testResultDao(db)
+const myInternalOrderDao = internalOrdersDao(db)
 
-const internalOrdersDaoInstance = internalOrdersDao(db)
 const itemDaoInstance = itemDao(db)
 const userDaoInstance = userDao(db)
 
@@ -60,6 +61,7 @@ const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
 const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
+const myInternalOrderService = internalOrderService(myInternalOrderDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)
@@ -68,9 +70,9 @@ const mySkuItemsApi = skuItemsApi(mySkuItemService)
 const myReturnOrdersApi = returnOrdersApi(myReturnOrderService)
 const myTestDescriptorsApi = testDescriptorsApi(myTestDescriptorService)
 const myTestResultApi = testResultApi(myTestResultService)
+const myInternalOrderApi = internalOrdersApi(myInternalOrderService)
 
 const userApiInstance = usersApi(userDaoInstance)
-const internalOrdersApiInstance = internalOrdersApi(internalOrdersDaoInstance)
 const itemApiInstance = itemApi(itemDaoInstance)
 
 // sku
@@ -146,13 +148,13 @@ app.post("/api/returnOrder", myReturnOrdersApi.add); //ok
 app.delete("/api/returnOrder/:id", myReturnOrdersApi.remove); //ok
 
 //internal order
-app.get("/api/internalOrders", internalOrdersApiInstance.getAll); //ok
-app.get("/api/internalOrdersIssued", internalOrdersApiInstance.getIssuedOrders); //ok
-app.get("/api/internalOrdersAccepted", internalOrdersApiInstance.getAcceptedOrders); //ok
-app.get("/api/internalOrders/:id", internalOrdersApiInstance.getById); //ok
-app.post("/api/internalOrders", internalOrdersApiInstance.add); //ok
-app.put("/api/internalOrders/:id", internalOrdersApiInstance.update); //ok
-app.delete("/api/internalOrders/:id", internalOrdersApiInstance.remove); //ok
+app.get("/api/internalOrders", myInternalOrderApi.getAll); //ok
+app.get("/api/internalOrdersIssued", myInternalOrderApi.getIssuedOrders); //ok
+app.get("/api/internalOrdersAccepted", myInternalOrderApi.getAcceptedOrders); //ok
+app.get("/api/internalOrders/:id", myInternalOrderApi.getById); //ok
+app.post("/api/internalOrders", myInternalOrderApi.add); //ok
+app.put("/api/internalOrders/:id", myInternalOrderApi.update); //ok
+app.delete("/api/internalOrders/:id", myInternalOrderApi.remove); //ok
 
 //items
 app.get("/api/items", itemApiInstance.getAll); //ok
