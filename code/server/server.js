@@ -31,6 +31,7 @@ const itemDao = require('./src/dao/itemDao')
 const returnOrdersApi = require('./src/api/returnOrdersApi')
 const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
+const itemService = require("./src/service/itemService");
 
 const app = new express();
 const port = 3001;
@@ -50,8 +51,8 @@ const myReturnOrdersDao = returnOrdersDao(db)
 const myTestDescriptorDao = testDescriptorsDao(db)
 const myTestResultDao = testResultDao(db)
 const myInternalOrderDao = internalOrdersDao(db)
+const myItemDao = itemDao(db)
 
-const itemDaoInstance = itemDao(db)
 const userDaoInstance = userDao(db)
 
 // Services
@@ -62,6 +63,7 @@ const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
+const myItemService = itemService(myItemDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)
@@ -71,9 +73,9 @@ const myReturnOrdersApi = returnOrdersApi(myReturnOrderService)
 const myTestDescriptorsApi = testDescriptorsApi(myTestDescriptorService)
 const myTestResultApi = testResultApi(myTestResultService)
 const myInternalOrderApi = internalOrdersApi(myInternalOrderService)
+const myItemApi = itemApi(myItemService)
 
 const userApiInstance = usersApi(userDaoInstance)
-const itemApiInstance = itemApi(itemDaoInstance)
 
 // sku
 app.get("/api/skus", mySkuApi.getAll);
@@ -157,11 +159,11 @@ app.put("/api/internalOrders/:id", myInternalOrderApi.update); //ok
 app.delete("/api/internalOrders/:id", myInternalOrderApi.remove); //ok
 
 //items
-app.get("/api/items", itemApiInstance.getAll); //ok
-app.get("/api/items/:id", itemApiInstance.getById); //ok
-app.post("/api/item", itemApiInstance.add); //ok
-app.put("/api/item/:id", itemApiInstance.update); //ok
-app.delete("/api/items/:id", itemApiInstance.remove); //ok
+app.get("/api/items", myItemApi.getAll); //ok
+app.get("/api/items/:id", myItemApi.getById); //ok
+app.post("/api/item", myItemApi.add); //ok
+app.put("/api/item/:id", myItemApi.update); //ok
+app.delete("/api/items/:id", myItemApi.remove); //ok
 
 
 app.listen(port, () => {

@@ -1,9 +1,10 @@
-function itemApi(itemDao) {
+const {ResourceNotFoundError} = require("../utils/exceptions");
+
+function itemApi(itemService) {
     const getAll = (req, res) => {
-        itemDao
-            .getAll()
-            .then((value) => {
-                res.status(200).json(value);
+        itemService.getAll()
+            .then((rows) => {
+                res.status(200).json(rows);
             })
             .catch(() => {
                 res.status(500).json({error: "generic error"});
@@ -13,16 +14,17 @@ function itemApi(itemDao) {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
-        console.log(req.body.id, req.body.description, req.body.price, req.body.SKUId, req.body.supplierId)
-        itemDao.add(
+        itemService.add(
             req.body.id,
             req.body.description,
             req.body.price,
             req.body.SKUId,
             req.body.supplierId,
-        ).then((value) => {
-            return res.status(201).json({message: "created"});
-        })
+        )
+            .then((id) => {
+                console.log(`item ${id} created`)
+                return res.status(201).end()
+            })
             .catch((err) => {
                 console.error(err)
                 return res.status(503).json({error: "generic error"});
@@ -32,21 +34,14 @@ function itemApi(itemDao) {
         if (req.params.id instanceof String) {
             return res.status(422).json({error: "invalid id"});
         }
-        itemDao.getById(req.params.id).then((value) => {
-            let message = {
-                array: value,
-            };
-            if (value.length === 0) {
-                return res.status(404).json({error: "not found"});
-            } else {
-                return res.status(200).json(message);
-            }
+        itemService.getById(req.params.id).then((row) => {
+            return res.status(200).json(row);
         }).catch((err) => {
-            console.error(err)
-            let error = {
-                message: "Internal Server Error",
-            };
-            return res.status(500).json(error);
+            if (err instanceof ResourceNotFoundError) {
+                return res.status(404).end();
+            }
+            console.log(err)
+            return res.status(503).end();
         });
 
     }
@@ -55,32 +50,30 @@ function itemApi(itemDao) {
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-        itemDao.remove(id).then(() => {
-            return res.status(202).json({message: "item deleted"});
+        itemService.remove(id).then(() => {
+            return res.status(204).end()
         }).catch((err) => {
             console.log(err)
             return res.status(503).json({message: "Service Unavailable"});
         });
     }
-    const update = async (req, res)=>{
-        if (Number(req.params.id) === NaN) {
+    const update = (req, res) => {
+        if (isNaN(req.params.id)) {
             return res.status(422).json({error: "no id"});
         }
-        const item = itemDao.getById(req.params.id).then((value)=>{
-            if(value.length===0){
-                return res.status(404).json({message: "item not found"})
 
-            }
-            else{
-                itemDao.update(req.params.id, req.body.newDescription, req.body.newPrice).then(()=>{
-                    return res.status(200).json({message: "item updated"})
-                }).catch(()=>{
-                    return res.status(503).json({message: "error during the update"})
-                })
-            }
-        })
-
-
+        itemService.update(req.params.id, req.body.newDescription, req.body.newPrice)
+            .then((id) => {
+                console.log(`Item ${id} update`)
+                return res.status(200).end()
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(503).end();
+            })
     }
     return {
         getAll: getAll,
