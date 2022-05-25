@@ -21,17 +21,17 @@ function userDao(db) {
             });
         });
     }
-    const getInfo = (id) => {
-        const sql = `SELECT *
-                     FROM users
-                     WHERE id = ?`;
-        const list = [id];
+    const getInfo = () => {
+        const sql = `SELECT * FROM users WHERE loggedIn = 1`;
         return new Promise((resolve, reject) => {
-            db.all(sql, list, (err, rows) => {
+            db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError('Resource not found'))
                 }
             });
         });
@@ -76,10 +76,10 @@ function userDao(db) {
     const getData = (username, password, type) => {
         return new Promise((resolve, reject) => {
             const sql =
-                "SELECT FROM users (id, username, name) WHERE username=? and name=? and type=?;";
+                'SELECT username FROM users  WHERE username=? and password=? and "type"=?;';
             const users = [
                 username,
-                pass,
+                password,
                 type
             ];
             db.all(sql, users, (err, rows) => {
@@ -96,11 +96,11 @@ function userDao(db) {
     }
 
     const logIn = (
-        id,
+        username,
     ) => {
         const sql =
-            "UPDATE users SET loggedIn=1 where id=?";
-        const list = [id,];
+            "UPDATE users SET loggedIn=1 where username=?";
+        const list = [username,];
         return new Promise((resolve, reject) => {
             db.run(sql, list, function (err) {
                 if (err) {

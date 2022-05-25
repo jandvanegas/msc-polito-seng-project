@@ -29,7 +29,8 @@ function migrationDao(db) {
     }
     return {
         run: run,
-        dropTable: dropTable
+        dropTable: dropTable,
+        db: db,
     }
 }
 

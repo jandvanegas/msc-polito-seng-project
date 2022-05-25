@@ -1,17 +1,8 @@
 const userDao = require("../dao/userDao");
 
 function userService(userDao) {
-    const getInfo = () => {
-        // TODO change when we know what the passport library is
-        return new Promise((resolve, reject) => {
-            resolve({
-                id: 1,
-                username: 'username',
-                name: 'name',
-                surname: 'surname',
-                type: 'type',
-            });
-        });
+    const getInfo = async () => {
+        return await userDao.getInfo()
     }
     const getSuppliers = async () => {
         return await userDao.getUsersByType("suppliers")
@@ -31,27 +22,27 @@ function userService(userDao) {
     }
     const logInManager = async (username, password) => {
         const user = await userDao.getData(username, password, 'manager')
-        return await userDao.logIn(user.id)
+        return await userDao.logIn(user.username)
     }
     const logInCustomer = async (username, password) => {
         const user = await userDao.getData(username, password, 'customer')
-        return await userDao.logIn(user.id)
+        return await userDao.logIn(user.username)
     }
     const logInSupplier = async (username, password) => {
         const user = await userDao.getData(username, password, 'supplier')
-        return await userDao.logIn(user.id)
+        return await userDao.logIn(user.username)
     }
     const logInClerk = async (username, password) => {
         const user = await userDao.getData(username, password, 'clerk')
-        return await userDao.logIn(user.id)
+        return await userDao.logIn(user.username)
     }
     const logInQualityEmployee = async (username, password) => {
-        const user = await userDao.getData(username, password, 'clerk')
-        return await userDao.logIn(user.id)
+        const user = await userDao.getData(username, password, 'qualityEmployee')
+        return await userDao.logIn(user.username)
     }
     const logInDeliveryEmployee = async (username, password) => {
-        const user = await userDao.getData(username, password, 'clerk')
-        return await userDao.logIn(user.id)
+        const user = await userDao.getData(username, password, 'deliveryEmployee')
+        return await userDao.logIn(user.username)
     }
     const logOut = async () => {
         return await userDao.logOut()

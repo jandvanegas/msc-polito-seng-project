@@ -1,4 +1,3 @@
-const userDao = require('../dao/userDao');
 const helper = require('./helper')
 const {ResourceNotFoundError} = require("../utils/exceptions");
 
@@ -12,8 +11,11 @@ function userApi(userService) {
                 return res.status(200).json(value);
             })
             .catch((err) => {
-                console.error(err)
-                return res.status(500).json({error: "generic error"});
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err);
+                return res.status(503).json({message: "Service Unavailable"});
             });
     }
     const getSuppliers = (req, res) => {
