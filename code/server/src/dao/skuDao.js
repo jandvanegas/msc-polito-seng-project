@@ -72,24 +72,37 @@ function skuDao(db) {
     }
     const deleteSkuData = () => {
         return new Promise((resolve, reject) => {
-          const sql = 'DELETE FROM skus';
-          db.run(sql, [], function (err) {
-            if (err) {
-              reject(err);
-              return;
-            }
-            resolve(true);
+            const sql = 'DELETE FROM skus';
+            db.run(sql, [], function (err) {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(true);
+            })
           })
-        })
+    }
+    const resetIndex = () => {
+        return new Promise((resolve, reject) => {
+            const sql = "delete from sqlite_sequence where name='skus'";
+            db.run(sql, [], function (err) {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(true);
+            })
+          })
     }
     return {
         getAll: getAll,
-        getById: getById,
-        add: add,
-        updateSku: updateSku,
-        updatePosition: updatePosition,
-        remove: remove,
-        deleteSkuData: deleteSkuData
+        getById: getById, 
+        add: add, 
+        updateSku: updateSku, 
+        updatePosition: updatePosition, 
+        remove: remove, 
+        deleteSkuData: deleteSkuData,
+        resetIndex:resetIndex
     }
 }
 

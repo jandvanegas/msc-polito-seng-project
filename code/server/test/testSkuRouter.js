@@ -96,17 +96,19 @@ describe("test sku apis", () => {
   //updatePosition(404, 999999, "123456789123")
   /************** EMPTY BODY **************/
   //updatePosition(422, 999999)
-
 });
 
 function getAll() {
   try {
     it("get all skus", function (done) {
+      const startTime = performance.now();
       agent.get("/api/skus").then(function (res) {
         res.should.have.status(200);
         done();
       });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }
@@ -115,6 +117,8 @@ function getAll() {
 function getById(expectedHttpStatus, id, data) {
   try {
     it("get sku by id", function (done) {
+      const startTime = performance.now();
+
       agent.get(`/api/skus/${id}`).then(function (res) {
         res.should.have.status(expectedHttpStatus);
         if (!res.status === 404 || !res.status === 422) {
@@ -129,6 +133,8 @@ function getById(expectedHttpStatus, id, data) {
         done();
       });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }
@@ -137,6 +143,8 @@ function getById(expectedHttpStatus, id, data) {
 function add(expectedHttpStatus, sku) {
   try {
     it("add sku", function (done) {
+      const startTime = performance.now();
+
       agent
         .post("/api/sku")
         .send({
@@ -152,6 +160,8 @@ function add(expectedHttpStatus, sku) {
           done();
         });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }
@@ -160,6 +170,8 @@ function add(expectedHttpStatus, sku) {
 function updateById(expectedHttpStatus, id, newInformations) {
   try {
     it("update sku", function (done) {
+      const startTime = performance.now();
+
       agent
         .put(`/api/sku/${id}`)
         .send({
@@ -175,6 +187,8 @@ function updateById(expectedHttpStatus, id, newInformations) {
           done();
         });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }
@@ -183,31 +197,38 @@ function updateById(expectedHttpStatus, id, newInformations) {
 function remove(expectedHttpStatus, id) {
   try {
     it("remove sku", function (done) {
-      agent
-        .delete(`/api/skus/${id}`)
-        .then(function (res) {
-          console.log("status " + res.status)
-          res.should.have.status(expectedHttpStatus);
-          done();
-        });
+      const startTime = performance.now();
+
+      agent.delete(`/api/skus/${id}`).then(function (res) {
+        console.log("status " + res.status);
+        res.should.have.status(expectedHttpStatus);
+        done();
+      });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }
 }
 
-function updatePosition(expectedHttpStatus, id, position){
+function updatePosition(expectedHttpStatus, id, position) {
   try {
     it("update sku position", function (done) {
+      const startTime = performance.now();
+
       agent
-        .put(`/api/sku/${id}/position`).send({position: position})
+        .put(`/api/sku/${id}/position`)
+        .send({ position: position })
         .then(function (res) {
-          console.log("data: ", expectedHttpStatus, id, position )
-          console.log("status: " + res.status)
+          console.log("data: ", expectedHttpStatus, id, position);
+          console.log("status: " + res.status);
           res.should.have.status(expectedHttpStatus);
           done();
         });
     });
+    const endTime = performance.now();
+    (endTime - startTime).should.lessThanOrEqual(500);
   } catch (err) {
     console.log(err);
   }

@@ -103,25 +103,38 @@ describe("get sku by id", () => {
       price: 10.99,
       testDescriptors: "[]",
     });
-    let id2 = 2;
-    let res2 = await skuServiceInstance.getById(id2);
-    expect(res2).toEqual({
-      id: 2,
-      description: "a new sku",
-      weight: 100,
-      volume: 50,
-      notes: "first SKU",
-      position: null,
-      availableQuantity: 50,
-      price: 10.99,
-      testDescriptors: "[]",
-    });
+
   });
 });
 
 describe("add sku", () => {
   beforeEach(() => {
     skuDao.add.mockReset();
+    skuDao.getAll.mockReset();
+    skuDao.getAll.mockReturnValueOnce([
+      {
+        id: 1,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+      {
+        id: 2,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+    ]);
   });
 
   test("add sku", async () => {
@@ -133,7 +146,7 @@ describe("add sku", () => {
       availableQuantity: 50,
       price: 10.99,
     };
-    let res = await skuServiceInstance.add(
+    await skuServiceInstance.add(
       sku.description,
       sku.weight,
       sku.volume,
@@ -141,18 +154,67 @@ describe("add sku", () => {
       sku.availableQuantity,
       sku.price
     );
-    expect(res).toEqual(undefined);
+    const result = await skuServiceInstance.getAll();
+    expect(result).toEqual([
+      {
+        id: 1,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+      {
+        id: 2,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+    ]);
   });
-});
+}); 
 
 describe("update sku", () => {
   beforeEach(() => {
     skuDao.updateSku.mockReset();
+    skuDao.getAll.mockReset();
+    skuDao.getAll.mockReturnValueOnce([
+      {
+        id: 1,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+      {
+        id: 2,
+        description: "new description",
+        weight: 1000,
+        volume: 1232,
+        notes: "new note",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+    ]);
   });
 
   test("update sku", async () => {
     const newSku = {
-      id: 1,
+      id: 2,
       newDescription: "new description",
       newWeight: 1000,
       newVolume: 1232,
@@ -160,7 +222,7 @@ describe("update sku", () => {
       newPrice: 19.99,
       newAvailableQuantity: 9999,
     };
-    let res1 = await skuServiceInstance.updateById(
+    const update = await skuServiceInstance.updateById(
       newSku.id,
       newSku.newDescription,
       newSku.newWeight,
@@ -168,7 +230,32 @@ describe("update sku", () => {
       newSku.price,
       newSku.availableQuantity
     );
-    expect(res1).toEqual(undefined);
+    expect(update).toEqual(undefined)
+    let result = await skuServiceInstance.getAll()
+    expect(result).toEqual([
+      {
+        id: 1,
+        description: "a new sku",
+        weight: 100,
+        volume: 50,
+        notes: "first SKU",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+      {
+        id: 2,
+        description: "new description",
+        weight: 1000,
+        volume: 1232,
+        notes: "new note",
+        position: null,
+        availableQuantity: 50,
+        price: 10.99,
+        testDescriptors: "[]",
+      },
+    ]);
   });
 });
 

@@ -2,10 +2,13 @@ const skuService = require("../src/service/skuService");
 const skuDao = require("../src/dao/skuDao");
 const positionDao = require("../src/dao/positionDao");
 const sqlite3 = require("sqlite3");
+const migrate = require("../src/dao/migrate");
 
-const db = new sqlite3.Database("ezwh.sqlite", (err) => {
+const db = new sqlite3.Database("test.sqlite", (err) => {
   if (err) throw err;
 });
+
+migrate(db);
 
 const mySkuDao = skuDao(db);
 const myPositionDao = positionDao(db);
@@ -342,9 +345,6 @@ async function testSkuUpdatePosition(data) {
       data.id1,
       "123456789012"
     );
-    console.log("*****************************");
-    console.log(res1);
-    console.log("*****************************");
     let res2 = await skuServiceInstance.getById(data.id1);
     expect(res2).toEqual({
       id: data.id1,

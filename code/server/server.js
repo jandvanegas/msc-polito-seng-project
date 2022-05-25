@@ -44,8 +44,8 @@ app.use(express.json());
 const db = new sqlite.Database("ezwh.sqlite", (err) => {
     if (err) throw err;
 });
-const daoInstance = migrationDao(db)
-migrate(daoInstance)
+
+migrate(db)
 
 //DAOs
 const mySkuDao = skuDao(db)
