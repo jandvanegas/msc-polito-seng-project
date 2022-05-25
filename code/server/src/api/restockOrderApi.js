@@ -1,187 +1,159 @@
-const helper = require('./helper')
+const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
 
-function restockOrderApi(restockOrderDao) {
-    const apiHelper = helper();
-
-    const orderStates = ['issued', 'delivery', 'delivered', 'tested', 'completedreturn', 'return'] 
+function restockOrderApi(restockOrderService) {
+    const orderStates = ['issued', 'delivery', 'delivered', 'tested', 'completedreturn', 'return']
 
     const getAll = (req, res) => {
-        // TODO: error 401 (unauthorized) 
-        restockOrderDao
-        .getAll()
-        .then((value) => {
-            res.status(200).json(value);
-        }).catch(() => {
-            res.status(500).json({error: "generic error"});
-        });
+        restockOrderService.getAll()
+            .then((rows) => {
+                res.status(200).json(rows);
+            })
+            .catch((err) => {
+                console.error(err)
+                res.status(500).json({error: "generic error"});
+            });
     }
 
     const getIssued = (req, res) => {
-        // TODO: error 401 (unauthorized) 
-        restockOrderDao
-        .getIssuedOrder()
-        .then((value) => {
-            res.status(200).json(value);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json({error: "generic error"});
-        });
+        restockOrderService.getIssued()
+            .then((rows) => {
+                res.status(200).json(rows);
+            })
+            .catch((err) => {
+                console.log(err);
+                res.status(500).json({error: "generic error"});
+            });
     }
 
     const getById = (req, res) => {
-        // TODO: error 401 (unauthorized) 
-
-        if(req.params.id === undefined){
+        if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
 
-        if(req.params.id instanceof Number){
+        if (req.params.id instanceof Number) {
             return res.status(422).json({error: "wrong id type"})
         }
 
-        restockOrderDao
-        .getById(req.params.id)
-        .then((value) => {
-            if(value.length === 0) {
-            return res.status(404).json({error: "no restock associated to id"});
-            }
-            return res.status(200).json(value);
-        })
-        .catch(() => {
-            return res.status(503).json({error: "generic error"});
-        });
+        restockOrderService.getById(req.params.id)
+            .then((value) => {
+                return res.status(200).json(value);
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.log(err)
+                return res.status(503).end();
+            });
     }
 
-    const getItems = async (req, res) => { //// 
-        // TODO: error 401 (unauthorized) 
-        const order = await restockOrderDao.getById(req.params.id);
-
-        if(req.params.id === undefined){
+    const getItems = async (req, res) => {
+        if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
-
-        if(req.params.id instanceof Number){
+        if (req.params.id instanceof Number) {
             return res.status(422).json({error: "wrong id type"});
         }
 
-        if(order[0].state !== "COMPLETEDRETURN"){
-            //TODO: test
-         return res.status(422).json({error: "wrong order state"});
-        }
-
-        restockOrderDao.getItemsOfOrder(req.params.id).then((value) => {
-            if(value.length === 0){
-                return res.status(404).json({error: "not found"});
-            }
-            else{
-                return res.status(200).json(value);
-            }
+        restockOrderService.getItems(req.params.id).then((rows) => {
+            return res.status(200).json(rows);
         }).catch((err) => {
-            let error = {message: "Internal server error"};
-            return res.status(500).json(error);
+            if (err instanceof ResourceNotFoundError) {
+                return res.status(404).end();
+            }
+            if (err instanceof ValidationError) {
+                return res.status(422).json({error: err.message});
+            }
+            console.log(err)
+            return res.status(503).end();
         });
     }
 
-    const add = (req,res) => {
-        //TODO "generic error during the test"
+    const add = (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
 
-        if(req.body.issueDate === undefined || req.body.products === undefined  || req.body.supplierId === undefined){
+        if (req.body.issueDate === undefined || req.body.products === undefined || req.body.supplierId === undefined) {
             return res.status(422).json({error: "wrong value in the body"})
-            
+
         }
 
-        if(req.body.issueDate instanceof String || req.body.products instanceof String || req.body.supplierId instanceof Number){
+        if (req.body.issueDate instanceof String || req.body.products instanceof String || req.body.supplierId instanceof Number) {
             return res.status(422).json({error: "wrong type(s) in the body"})
         }
 
-        const order = restockOrderDao.add(
+        restockOrderService.add(
             req.body.issueDate,
             req.body.products,
             req.body.supplierId
-        );
-
-        order.then((value) => {
-            return res.status(201).json({message: "order created"});
-        })
-        .catch((err) => {
-            console.log(err);
-            return res.status(503).json({error: "generic error"});
-        });
+        )
+            .then((id) => {
+                console.log(`Restock order ${id} was created.`)
+                return res.status(201).json({message: "order created"});
+            })
+            .catch((err) => {
+                console.log(err);
+                return res.status(503).json({error: "generic error"});
+            });
     }
 
     const update = (req, res) => {
-        // TODO: error 401 (unauthorized)
-
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
 
-        if(req.body.newState === undefined){
+        if (req.body.newState === undefined) {
             return res.status(422).json({error: "wrong value in the body"})
-            
+
         }
 
-        if(req.body.newState instanceof String){
+        if (req.body.newState instanceof String) {
             return res.status(422).json({error: "wrong type in the body"})
         }
 
-        const restockOrder = restockOrderDao.updateState(req.params.id, req.body.newState)
-        
-        .then((value) => {
-            if(value === undefined){
-                return res.status(404).json({message: "order not found"})
-            }
-            return res.status(200).json({message: "order state updated"})
-        }).catch(() => {
+        restockOrderService.updateState(req.params.id, req.body.newState)
+            .then((id) => {
+                console.log(`Restock order updated ${id}`)
+                return res.status(200).end()
+            }).catch(() => {
             return res.status(503).json({error: "generic error"})
         })
     }
 
     const addItems = async (req, res) => {
-        // TODO: error 401 (unauthorized)
-        const order = await restockOrderDao.getById(req.params.id)
-        let items = req.body.skuItems;
-
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
-
-        if(req.body.skuItems === undefined || order[0].state !== "DELIVERED"){
-            return res.status(422).json({error: "validation of request body or of id failed or order state != DELIVERED"})
-            
-        }
-
-        if(req.body.skuItems instanceof String){
+        if (req.body.skuItems instanceof String) {
             return res.status(422).json({error: "wrong type in the body"})
         }
 
-        if(order[0].skuItems.length !== 0){
-            items = items.concat(JSON.parse(order[0].skuItems));
-        };
+        restockOrderService.addItems(req.params.id, req.body.skuItems)
+            .then((id) => {
+                console.log(`Added items on restock id ${id}`)
+                return res.status(200).json({message: "Items added to the order"})
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                if (err instanceof ValidationError) {
+                    return res.status(422).json({error: err.message});
+                }
+                console.log(err)
+                return res.status(503).end();
+            });
+    }
 
-        restockOrderDao
-        .addItems(req.params.id, items)
-        .then((value) => {
-            if(value === undefined){
-                return res.status(404).json({message: "no restock order associated to id"})
-            }
-            return res.status(200).json({message: "Items added to the order"})
-        }).catch(() => {
-            return res.status(503).json({message: "generic error"});
-        });
-     }
-
-return {
-    getAll: getAll,
-    getIssued: getIssued,
-    getById: getById,
-    add: add,
-    update: update,
-    getItems: getItems,
-    addItems: addItems,
+    return {
+        getAll: getAll,
+        getIssued: getIssued,
+        getById: getById,
+        add: add,
+        update: update,
+        getItems: getItems,
+        addItems: addItems,
     }
 
 }
