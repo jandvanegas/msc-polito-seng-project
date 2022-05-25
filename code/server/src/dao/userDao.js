@@ -7,7 +7,7 @@ function userDao(db) {
     const getById = baseDaoInstance.getById
 
     const getUsersByType = (type) => {
-        const sql = `SELECT *
+        const sql = `SELECT id, name, surname, username as email, type
                      FROM users
                      WHERE type = ?`;
         const list = [type];
@@ -22,7 +22,8 @@ function userDao(db) {
         });
     }
     const getInfo = () => {
-        const sql = `SELECT * FROM users WHERE loggedIn = 1`;
+        const sql = `SELECT id, name, surname, username as email, type 
+                        FROM users WHERE loggedIn = 1`;
         return new Promise((resolve, reject) => {
             db.all(sql, [], (err, rows) => {
                 if (err) {

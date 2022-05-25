@@ -29,6 +29,14 @@ function migrate(migrationDao) {
         const insertUsers = " insert or ignore into users(username, name, password, surname, type) VALUES ('user1@ezwh.com', 'user1', 'testpassword', 'Employee', 'customer'),('qualityEmployee1@ezwh.com', 'qualityEmployee1', 'testpassword', 'Employee', 'qualityEmployee'),('clerk1@ezwh.com', 'clerk1', 'testpassword', 'Employee', 'clerk'),('deliveryEmployee1@ezwh.com', 'deliveryEmployee1', 'testpassword', 'Employee', 'deliveryEmployee'),('supplier1@ezwh.com', 'supplier1', 'testpassword', 'Employee', 'supplier'),('manager1@ezwh.com', 'manager1', 'testpassword', 'Employee', 'manager')"
         migrationDao.db.run(insertUsers);
     })
+    migrationDao.db.serialize(function (){
+        const createUserTable =
+            "CREATE TABLE IF NOT EXISTS users (id Integer primary key autoincrement, username VARCHAR NOT NULL Unique, name VARCHAR NOT NULL, password VARCHAR NOT NULL, surname VARCHAR NOT NULL, type VARCHAR NOT NULL, loggedIn Integer NOT NULL default 0)";
+        migrationDao.db.run(createUserTable);
+
+        const insertUsers = " insert or ignore into users(username, name, password, surname, type) VALUES ('user1@ezwh.com', 'user1', 'testpassword', 'Employee', 'customer'),('qualityEmployee1@ezwh.com', 'qualityEmployee1', 'testpassword', 'Employee', 'qualityEmployee'),('clerk1@ezwh.com', 'clerk1', 'testpassword', 'Employee', 'clerk'),('deliveryEmployee1@ezwh.com', 'deliveryEmployee1', 'testpassword', 'Employee', 'deliveryEmployee'),('supplier1@ezwh.com', 'supplier1', 'testpassword', 'Employee', 'supplier'),('manager1@ezwh.com', 'manager1', 'testpassword', 'Employee', 'manager')"
+        migrationDao.db.run(insertUsers);
+    })
 
     const createReturnOrders =
         "CREATE TABLE IF NOT EXISTS returnOrders (id Integer PRIMARY key autoincrement, returnDate DATE, products TO_VARCHAR NOT NULL,restockOrderId Integer)";

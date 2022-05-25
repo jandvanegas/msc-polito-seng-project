@@ -28,7 +28,7 @@ function userApi(userService) {
             });
     }
     const getUsers = (req, res) => {
-        userService.getAll()
+        userService.getUsers()
             .then((rows) => {
                 return res.status(200).json(rows);
             })
