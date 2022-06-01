@@ -21,8 +21,8 @@ function skuItemsApi(skuItemService) {
 
         skuItemService.getBySkuId(skuID)
             .then((skuItem) => {
-                console.log(`Sku item ${skuItem} created`)
-                return res.status(201).end();
+                console.log(`Sku items ${skuItem} returned`)
+                return res.status(200).json(skuItem);
             })
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {

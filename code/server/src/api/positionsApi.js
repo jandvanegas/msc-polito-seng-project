@@ -57,7 +57,6 @@ function positionsApi(positionService) {
 
         try {
             apiHelper.validateFields(req, res, [
-                    ['positionID', 'string'],
                     ['newAisleID', 'string'],
                     ['newRow', 'string'],
                     ['newCol', 'string'],
@@ -67,8 +66,7 @@ function positionsApi(positionService) {
                     ['newOccupiedVolume', 'number'],
                 ],
                 [
-                    typeof (req.params.positionID) === "number",
-                    req.body.positionID.length === 12,
+                    Number.isInteger(parseInt(req.params.positionID)),
                     req.body.newAisleID.length === 4,
                     req.body.newRow.length === 4,
                     req.body.newCol.length === 4,
@@ -130,10 +128,10 @@ function positionsApi(positionService) {
         }
         await positionService.remove(id)
             .then((id) => {
-                return res.status(202).json({message: "position deleted"});
+                return res.status(204).json({message: "position deleted"});
             })
             .catch((err) => {
-                return res.status(204).json({message: "position sku"});
+                return res.status(503).json({message: "position sku"});
             });
     }
     return {

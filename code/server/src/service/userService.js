@@ -5,7 +5,7 @@ function userService(userDao) {
         return await userDao.getInfo()
     }
     const getSuppliers = async () => {
-        return await userDao.getUsersByType("suppliers")
+        return await userDao.getUsersByType("supplier")
     }
     const getUsers = async () => {
         const allUsers = await userDao.getAll()

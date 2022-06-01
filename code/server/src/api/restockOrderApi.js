@@ -112,7 +112,7 @@ function restockOrderApi(restockOrderService) {
             return res.status(422).json({error: "wrong type in the body"})
         }
 
-        restockOrderService.updateState(req.params.id, req.body.newState)
+        restockOrderService.update(req.params.id, req.body.newState)
             .then((id) => {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()

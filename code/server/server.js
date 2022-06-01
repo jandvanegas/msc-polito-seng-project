@@ -68,7 +68,7 @@ const myReturnOrderService = returnOrderService(myReturnOrdersDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
-const myItemService = itemService(myItemDao)
+const myItemService = itemService(myItemDao, mySkuDao)
 const myUserService = userService(myUserDao)
 const myRestockOrderService = restockOrderService(myRestockOrderDao)
 

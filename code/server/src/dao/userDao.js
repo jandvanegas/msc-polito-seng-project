@@ -32,7 +32,7 @@ function userDao(db) {
                     if (rows.length > 0) {
                         resolve(rows[0])
                     }
-                    reject(new ResourceNotFoundError('Resource not found'))
+                    reject(new ResourceNotFoundError('users'))
                 }
             });
         });

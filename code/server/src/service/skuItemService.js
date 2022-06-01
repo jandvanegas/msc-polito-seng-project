@@ -3,6 +3,7 @@ function skuItemService(skuItemsDao, skuDao) {
         return await skuItemsDao.getAll()
     }
     const getBySkuId = async (skuId) => {
+        await skuDao.getById(skuId)
         return await skuItemsDao.getBySkuId(skuId)
     }
     const getByRfid = async (rfid) => {
