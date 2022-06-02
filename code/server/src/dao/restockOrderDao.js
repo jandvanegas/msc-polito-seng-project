@@ -126,11 +126,11 @@ function restockOrderDao(db) {
         // Add a transport note to a restock order, given its id.
         const sql = "UPDATE restockOrders SET transportNote = ? WHERE id = ?;";
         return new Promise((resolve, reject) => {
-            db.run(sql, [note, id], (err) => {
+            db.run(sql, [note, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });

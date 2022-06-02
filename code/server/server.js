@@ -64,7 +64,7 @@ const myRestockOrderDao = restockOrderDao(db)
 const mySkuService = skuService(mySkuDao, myPositionDao)
 const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
-const myReturnOrderService = returnOrderService(myReturnOrdersDao)
+const myReturnOrderService = returnOrderService(myReturnOrdersDao, myRestockOrderDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
@@ -145,6 +145,7 @@ app.get("/api/restockOrders/:id/returnItems", myRestockOrderApi.getItems)
 app.post("/api/restockOrder", myRestockOrderApi.add)
 app.put("/api/restockOrder/:id", myRestockOrderApi.update)
 app.put("/api/restockOrder/:id/skuItems", myRestockOrderApi.addItems)
+app.put("/api/restockOrder/:id/transportNote", myRestockOrderApi.addTransportNoteById)
 
 //return order
 app.get("/api/returnOrders", myReturnOrdersApi.getAll) //ok

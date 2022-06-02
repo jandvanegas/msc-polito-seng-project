@@ -10,6 +10,11 @@ function restockOrderService(restockOrderDao) {
     const getById = async (id) => {
         return await restockOrderDao.getById(id)
     }
+    const addTransportNoteById = async (id, transportNote, deliveryDate) => {
+        const order = await restockOrderDao.getById(id)
+        // todo compare date
+        return await restockOrderDao.addTransportNote(id, transportNote)
+    }
     const getItems = async (
         id,
     ) => {
@@ -58,6 +63,7 @@ function restockOrderService(restockOrderDao) {
         add: add,
         update: update,
         addItems: addItems,
+        addTransportNoteById: addTransportNoteById,
     }
 }
 

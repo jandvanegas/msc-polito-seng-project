@@ -1,4 +1,4 @@
-function returnOrderService(returnOrdersDao) {
+function returnOrderService(returnOrdersDao, restockOrderDao) {
     const getAll = async () => {
         const returnOrders = await returnOrdersDao.getAll()
         return returnOrders.map(returnOrder => {
@@ -10,7 +10,7 @@ function returnOrderService(returnOrdersDao) {
         returnDate,
         products,
         restockOrderId) => {
-        // TODO validate restockOrderId exists
+        await restockOrderDao.getById(restockOrderId)
         return await returnOrdersDao.add(
             returnDate,
             products,

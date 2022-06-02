@@ -1,7 +1,7 @@
 const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
 
 function restockOrderApi(restockOrderService) {
-    const orderStates = ['issued', 'delivery', 'delivered', 'tested', 'completedreturn', 'return']
+    const orderStates = ['ISSUED', 'DELIVERY', 'DELIVERED', 'TESTED', 'COMPLETEDRETURN', 'COMPLETED']
 
     const getAll = (req, res) => {
         restockOrderService.getAll()
@@ -103,13 +103,9 @@ function restockOrderApi(restockOrderService) {
             return res.status(422).json({error: "empty body request"});
         }
 
-        if (req.body.newState === undefined) {
+        if (typeof (req.body.newState) !== 'string' ||
+            !orderStates.includes(req.body.newState)) {
             return res.status(422).json({error: "wrong value in the body"})
-
-        }
-
-        if (req.body.newState instanceof String) {
-            return res.status(422).json({error: "wrong type in the body"})
         }
 
         restockOrderService.update(req.params.id, req.body.newState)
@@ -121,6 +117,32 @@ function restockOrderApi(restockOrderService) {
         })
     }
 
+    const addTransportNoteById = (req, res) => {
+        if (Object.keys(req.body).length === 0) {
+            return res.status(422).json({error: "empty body request"});
+        }
+
+        if (typeof (req.body.transportNote) !== 'object' ||
+            req.body.transportNote.deliveryDate === undefined) {
+            return res.status(422).json({error: "wrong value in the body"})
+        }
+
+        restockOrderService.addTransportNoteById(req.params.id, req.body.transportNote,
+            req.body.transportNote.deliveryDate)
+            .then((id) => {
+                console.log(`Restock order updated ${id}`)
+                return res.status(200).end()
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                if (err instanceof ValidationError) {
+                    return res.status(422).json({error: err.message});
+                }
+                return res.status(503).json({error: "generic error"})
+            })
+    }
     const addItems = async (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
@@ -154,6 +176,7 @@ function restockOrderApi(restockOrderService) {
         update: update,
         getItems: getItems,
         addItems: addItems,
+        addTransportNoteById: addTransportNoteById,
     }
 
 }

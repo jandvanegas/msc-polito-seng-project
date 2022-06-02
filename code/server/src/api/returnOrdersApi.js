@@ -35,12 +35,14 @@ function returnOrdersApi(returnOrderService) {
             return res.status(201).end();
         })
             .catch((err) => {
-                console.log(err)
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
                 return res.status(503).json({error: "generic error"});
             });
     }
     const getById = (req, res) => {
-        if (req.params.id instanceof String) {
+        if (isNaN(Number.parseInt(req.params.id ))) {
             return res.status(422).json({error: "invalid id"});
         }
         returnOrderService.getById(req.params.id).then((value) => {
