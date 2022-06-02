@@ -112,9 +112,16 @@ function restockOrderApi(restockOrderService) {
             .then((id) => {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()
-            }).catch(() => {
-            return res.status(503).json({error: "generic error"})
-        })
+            })
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                if (err instanceof ValidationError) {
+                    return res.status(422).json({error: err.message});
+                }
+                return res.status(503).json({error: "generic error"})
+            })
     }
 
     const addTransportNoteById = (req, res) => {

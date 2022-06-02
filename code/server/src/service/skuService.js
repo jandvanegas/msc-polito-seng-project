@@ -1,3 +1,5 @@
+const {ValidationError} = require("../utils/exceptions");
+
 function skuService(skuDao, positionDao) {
   const getById = (id) => {
     return skuDao.getById(id);
@@ -54,6 +56,11 @@ function skuService(skuDao, positionDao) {
   const updatePosition = async (id, position) => {
 
     const sku = await skuDao.getById(id);
+    const skuByPosition = await skuDao.getByPosition(position)
+    if(skuByPosition.length > 0) {
+      throw new ValidationError("Position already used")
+    }
+    const positionObject = await positionDao.getById(position)
     await skuDao.updatePosition(sku.id, position);
     await positionDao.update(sku.position, 0, 0, sku.weight, sku.volume);
     await positionDao.update(position, sku.weight, sku.volume, 0, 0);

@@ -1,4 +1,4 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
+const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
 const helper = require("./helper");
 
 function skusApi(skuService) {
@@ -128,7 +128,8 @@ function skusApi(skuService) {
             apiHelper.validateFields(req, res, [
                     ['position', 'string'],
                 ], [
-                    !isNaN(req.params.id),
+                    !isNaN(Number.parseInt(req.params.id)),
+                    req.body.position.lenght === 12,
                 ]
             )
         } catch (err) {
@@ -144,6 +145,9 @@ function skusApi(skuService) {
             .catch((err) => {
                 if (err instanceof ResourceNotFoundError) {
                     return res.status(404).end();
+                }
+                if (err instanceof ValidationError) {
+                    return res.status(422).end()
                 }
                 console.log(err);
                 return res.status(503).end();

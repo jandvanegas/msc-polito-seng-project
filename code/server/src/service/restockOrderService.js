@@ -1,5 +1,7 @@
 const {ValidationError} = require("../utils/exceptions");
 
+const dayjs = require('dayjs')
+
 function restockOrderService(restockOrderDao) {
     const getAll = async () => {
         return await restockOrderDao.getAll()
@@ -12,7 +14,15 @@ function restockOrderService(restockOrderDao) {
     }
     const addTransportNoteById = async (id, transportNote, deliveryDate) => {
         const order = await restockOrderDao.getById(id)
-        // todo compare date
+        const dayjsIssueDate = dayjs(order.issueDate)
+        const dayjsDeliveryDate = dayjs(deliveryDate)
+        if (dayjsDeliveryDate.diff(dayjsIssueDate) < 0) {
+            throw new ValidationError('Delivery Date before issue date')
+        }
+        if (order.state !== 'DELIVERY') {
+            throw new ValidationError('State different than DELIVERY')
+
+        }
         return await restockOrderDao.addTransportNote(id, transportNote)
     }
     const getItems = async (
@@ -39,6 +49,7 @@ function restockOrderService(restockOrderDao) {
         id,
         newState,
     ) => {
+        await restockOrderDao.getById(id)
         return await restockOrderDao.updateState(id, newState)
     }
     const addItems = async (
