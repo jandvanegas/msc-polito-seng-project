@@ -30,6 +30,8 @@ function positionsApi(positionService) {
                     req.body.aisleID.length === 4,
                     req.body.row.length === 4,
                     req.body.col.length === 4,
+                    req.body.maxVolume > 0,
+                    req.body.maxWeight > 0,
                 ]
             )
         } catch (err) {
@@ -70,6 +72,10 @@ function positionsApi(positionService) {
                     req.body.newAisleID.length === 4,
                     req.body.newRow.length === 4,
                     req.body.newCol.length === 4,
+                    req.body.newMaxVolume > 0,
+                    req.body.newMaxWeight > 0,
+                    req.body.newOccupiedWeight > 0,
+                    req.body.newOccupiedVolume > 0,
                 ]
             )
         } catch (err) {
@@ -77,7 +83,7 @@ function positionsApi(positionService) {
         }
 
         positionService.updateFull(
-            req.params.id,
+            req.params.positionID,
             req.body.newAisleID,
             req.body.newRow,
             req.body.newCol,
@@ -105,6 +111,7 @@ function positionsApi(positionService) {
                 [
                     typeof (req.params.positionID) === "string",
                     req.body.newPositionID.length === 12,
+                    Number.isInteger(parseInt(req.params.positionID)),
                 ]
             )
         } catch (err) {
@@ -122,8 +129,8 @@ function positionsApi(positionService) {
         })
     }
     const remove = async (req, res) => {
-        const id = req.params.positionID;
-        if (req.params.positionID === undefined) {
+        const id = parseInt(req.params.positionID)
+        if (!Number.isInteger(id)) {
             return res.status(422).json({error: "no id"});
         }
         await positionService.remove(id)
