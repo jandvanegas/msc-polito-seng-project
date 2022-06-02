@@ -1,6 +1,8 @@
 const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function testDescriptorsApi(testDescriptorService) {
+    const apiHelper = helper()
     const getAll = (req, res) => {
         testDescriptorService.getAll()
             .then((rows) => {
@@ -12,8 +14,17 @@ function testDescriptorsApi(testDescriptorService) {
             });
     }
     const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['name', 'string'],
+                    ['procedureDescription', 'string'],
+                    ['idSKU', 'number'],
+                ], [
+
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
         testDescriptorService.add(
             req.body.name,
@@ -78,7 +89,7 @@ function testDescriptorsApi(testDescriptorService) {
 
     const remove = (req, res) => {
         const id = req.params.id;
-        if (req.params.id === undefined) {
+        if (isNaN(Number.parseInt(id))) {
             return res.status(422).json({error: "no id"});
         }
         testDescriptorService.remove(id)

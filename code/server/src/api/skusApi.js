@@ -103,7 +103,7 @@ function skusApi(skuService) {
 
         skuService
             .updateById(
-                id,
+                req.params.id,
                 newDescription,
                 newWeight,
                 newVolume,
