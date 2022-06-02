@@ -43,6 +43,9 @@ function userApi(userService) {
                     ['username', 'string'],
                     ['name', 'string'],
                     ['surname', 'string'],
+                ],
+                [
+                    apiHelper.validateEmail(req.body.username)
                 ]
             )
         } catch (err) {
@@ -226,22 +229,31 @@ function userApi(userService) {
         try {
             apiHelper.validateFields(req, res, [
                     ['newType', 'string'],
+                    ['oldType', 'string'],
                 ]
             )
         } catch (err) {
             return res.status(422).json({error: err.message});
         }
-        userService.update(req.params.username, req.body.newType)
+        userService.update(req.params.username, req.body.newType, req.body.oldType)
             .then(() => {
                 res.status(200).end()
             })
-            .catch(() => {
+            .catch((err) => {
+                if (err instanceof ResourceNotFoundError) {
+                    return res.status(404).end();
+                }
+                console.error(err)
                 res.status(503).json({error: "error during the update of user's type"})
             });
     }
 
     const remove = (req, res) => {
-        if (req.params.username === undefined || !userTypes.includes(req.params.type)) {
+
+        if (req.params.username === undefined ||
+            !userTypes.includes(req.params.type) ||
+            !apiHelper.validateEmail(req.params.username)
+        ) {
             return res.status(422).json({error: "params validation error"});
         }
         userService.remove(req.params.username, req.params.type)

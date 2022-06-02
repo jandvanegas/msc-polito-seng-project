@@ -1,5 +1,3 @@
-const userDao = require("../dao/userDao");
-
 function userService(userDao) {
     const getInfo = async () => {
         return await userDao.getInfo()
@@ -50,8 +48,9 @@ function userService(userDao) {
     const update = async (
         username,
         newType,
+        oldType,
     ) => {
-        await userDao.getUserByUsername(req.params.username)
+        await userDao.getUserByUsernameAndType(username, oldType)
         return  await userDao.update(username, newType)
     }
     const remove = async (username, type) => {
