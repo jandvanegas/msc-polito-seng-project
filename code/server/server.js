@@ -110,7 +110,7 @@ app.delete("/api/position/:positionID", myPositionApi.remove);
 //test descriptor
 app.get("/api/testDescriptors", myTestDescriptorsApi.getAll)
 app.post("/api/testDescriptor", myTestDescriptorsApi.add)
-app.get("/api/testDescriptor/:id", myTestDescriptorsApi.getById);
+app.get("/api/testDescriptors/:id", myTestDescriptorsApi.getById);
 app.post("/api/testDescriptor", myTestDescriptorsApi.add)
 app.put("/api/testDescriptor/:id", myTestDescriptorsApi.update);
 app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
@@ -119,8 +119,8 @@ app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
 app.post("/api/skuitems/testResult", myTestResultApi.add)
 app.get("/api/skuitems/:rfid/testResults", myTestResultApi.getByRfid)
 app.get("/api/skuitems/:rfid/testResults/:id", myTestResultApi.getByRfidAndId)
-app.put("/api/skuitems/:rfid/testResults/:id", myTestResultApi.update)
-app.delete("/api/skuitems/:rfid/testResults/:id", myTestResultApi.remove)
+app.put("/api/skuitems/:rfid/testResult/:id", myTestResultApi.update)
+app.delete("/api/skuitems/:rfid/testResult/:id", myTestResultApi.remove)
 
 //user
 app.get("/api/userinfo", myUserApi.getInfo)

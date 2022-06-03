@@ -84,7 +84,7 @@ function skuItemsApi(skuItemService) {
                     ['newDateOfStock', 'string'],
                     ['newAvailable', 'number'],
                 ], [
-                    !isNaN(req.params.rfid),
+                    !isNaN(Number.parseInt(req.params.rfid)),
                     req.params.rfid.length === 32,
                     req.body.newRFID.length === 32,
                 ]

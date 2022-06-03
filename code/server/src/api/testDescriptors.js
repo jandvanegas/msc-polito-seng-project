@@ -44,7 +44,7 @@ function testDescriptorsApi(testDescriptorService) {
             });
     }
     const getById = (req, res) => {
-        if (req.params.id instanceof String) {
+        if (Number.isNaN(Number.parseInt(req.params.id))) {
             return res.status(422).json({error: "invalid id"});
         }
         testDescriptorService.getById(req.params.id)

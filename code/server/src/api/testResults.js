@@ -1,6 +1,8 @@
 const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function testResultsApi(testResultService) {
+    const apiHelper = helper()
     const getAll = (req, res) => {
         testResultService
             .getAll()
@@ -13,15 +15,18 @@ function testResultsApi(testResultService) {
             });
     }
     const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-
-        if (Number.isNaN(req.body.id)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        if (Number.isNaN(req.body.rfid)) {
-            return res.status(422).json({error: "invalid rfid"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['rfid', 'string'],
+                    ['idTestDescriptor', 'number'],
+                    ['Date', 'string'],
+                    ['Result', 'boolean'],
+                ], [
+                    req.body.rfid.length === 32
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
         testResultService.add(
             req.body.rfid,
@@ -41,6 +46,11 @@ function testResultsApi(testResultService) {
             });
     }
     const getByRfid = (req, res) => {
+        if (Number.isNaN(Number.parseInt(req.params.rfid)) ||
+            req.params.rfid.length !== 32
+        ) {
+            return res.status(422).json({error: "invalid rfid"});
+        }
         testResultService.getByRfid(req.params.rfid)
             .then((rows) => {
                 return res.status(200).json(rows);
@@ -71,16 +81,20 @@ function testResultsApi(testResultService) {
         });
     }
     const update = (req, res) => {
-        if (Number.isNaN(req.params.id)) {
-            return res.status(422).json({error: "invalid id"});
+        try {
+            apiHelper.validateFields(req, res, [
+                    ['newIdTestDescriptor', 'number'],
+                    ['newDate', 'string'],
+                    ['newResult', 'boolean'],
+                ], [
+                !Number.isNaN(Number.parseInt(req.params.id)),
+                !Number.isNaN(Number.parseInt(req.params.rfid)),
+                    req.params.rfid.length === 32
+                ]
+            )
+        } catch (err) {
+            return res.status(422).json({error: err.message});
         }
-        if (Number.isNaN(req.params.rfid)) {
-            return res.status(422).json({error: "invalid rfid"});
-        }
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-
         testResultService.update(
             req.params.rfid,
             req.params.id,

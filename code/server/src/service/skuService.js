@@ -1,4 +1,4 @@
-const {ValidationError} = require("../utils/exceptions");
+const {ValidationError, ResourceNotFoundError} = require("../utils/exceptions");
 
 function skuService(skuDao, positionDao) {
   const getById = (id) => {
@@ -67,10 +67,14 @@ function skuService(skuDao, positionDao) {
   };
 
   const remove = async (id) => {
-    const skuToDelete = await skuDao.getById(id)
-    const sku = await skuDao.remove(id);
-    if (skuToDelete.position !== undefined) {
-      await positionDao.update(skuToDelete.position, 0, 0, skuToDelete.weight, skuToDelete.volume);
+    try {
+      const skuToDelete = await skuDao.getById(id)
+      if (skuToDelete.position !== undefined) {
+        await positionDao.update(skuToDelete.position, 0, 0, skuToDelete.weight, skuToDelete.volume);
+      }
+      await skuDao.remove(id);
+    } catch (err) {
+      console.log('Resource already deleted')
     }
   };
 
