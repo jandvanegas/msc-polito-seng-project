@@ -36,10 +36,12 @@ const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
 const itemService = require("./src/service/itemService");
 const restockOrderApi = require('./src/api/restockOrderApi')
+const {ResourceNotFoundError, ValidationError} = require("./src/utils/exceptions");
 
 const app = new express();
 const port = 3001;
 app.use(express.json());
+
 
 const db = new sqlite.Database("ezwh.sqlite", (err) => {
     if (err) throw err;
@@ -171,6 +173,17 @@ app.post("/api/item", myItemApi.add); //ok
 app.put("/api/item/:id", myItemApi.update); //ok
 app.delete("/api/items/:id", myItemApi.remove); //ok
 
+
+app.use((err, req, res, next) => {
+    if (err instanceof ResourceNotFoundError) {
+        res.status(404).end();
+    }
+    if (err instanceof ValidationError) {
+        res.status(422).json({error: err.message});
+    }
+    console.log(err)
+    res.status(503).end();
+})
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

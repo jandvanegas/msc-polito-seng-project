@@ -1,24 +1,31 @@
 const {ValidationError} = require("../utils/exceptions");
 
 function helper() {
-    const validateFields = (req, res, fields, validations=[]) => {
+    const fieldsValid = (req, res, next, fields) => {
         if (Object.keys(req.body).length === 0) {
-            throw new ValidationError("Empty body request")
+            next(new ValidationError("Empty body request"))
+            return false
         }
         fields.forEach((fieldPair) => {
             const field = fieldPair[0]
             const fieldType = fieldPair[1]
             if (req.body[field] === undefined) {
-                throw new ValidationError(`not defined ${field}`)
+                next(new ValidationError(`not defined ${field}`))
+                return false
             }
             if (typeof (req.body[field]) !== fieldType) {
-                throw new ValidationError(`${field} needs to be ${fieldType}`)
+                next(new ValidationError(`${field} needs to be ${fieldType}`))
+                return false
             }
         })
+        return true
+    }
+    const conditionsValid = (next, validations) => {
         if (!validations.every(v => v)) {
-            throw new ValidationError(`Params or body validation`)
-
+            next(new ValidationError(`Params or body validation`))
+            return false
         }
+        return true
     }
     const validateEmail = (email) => {
         return email.match(
@@ -26,8 +33,9 @@ function helper() {
         );
     };
     return {
-        validateFields: validateFields,
-        validateEmail: validateEmail
+        fieldsValid: fieldsValid,
+        validateEmail: validateEmail,
+        conditionsValid: conditionsValid,
 
     }
 }

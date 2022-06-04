@@ -1,9 +1,8 @@
-const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
 const helper = require("./helper");
 
 function skusApi(skuService) {
     const apiHelper = helper()
-    const getById = (req, res) => {
+    const getById = (req, res, next) => {
         if (isNaN(req.params.id)) {
             return res.status(422).json({error: "invalid id"});
         }
@@ -11,46 +10,37 @@ function skusApi(skuService) {
             .then((sku) => {
                 return res.status(200).json(sku);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(500).end();
-            })
+            .catch((err) => next(err));
     }
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         skuService.getAll()
             .then((skus) => {
                 return res.status(200).json(skus);
             })
-            .catch((err) => {
-                console.log(err)
-                return res.status(500).end();
-            })
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['description', 'string'],
-                    ['weight', 'number'],
-                    ['volume', 'number'],
-                    ['notes', 'string'],
-                    ['price', 'number'],
-                    ['availableQuantity', 'number'],
-                ], [
-                    req.body.weight >= 0,
-                    req.body.volume >= 0,
-                    req.body.price >= 0,
-                    req.body.availableQuantity >= 0,
-                    Number.isInteger(req.body.availableQuantity),
-                    req.body.description.length > 0,
-                    req.body.notes.length > 0
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['description', 'string'],
+                ['weight', 'number'],
+                ['volume', 'number'],
+                ['notes', 'string'],
+                ['price', 'number'],
+                ['availableQuantity', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                req.body.weight >= 0,
+                req.body.volume >= 0,
+                req.body.price >= 0,
+                req.body.availableQuantity >= 0,
+                Number.isInteger(req.body.availableQuantity),
+                req.body.description.length > 0,
+                req.body.notes.length > 0
+            ]
+        )
+        if (!conditionsValid) return;
         skuService
             .add(
                 req.body.description,
@@ -64,35 +54,32 @@ function skusApi(skuService) {
                 console.log(`Sku ${id} created.`)
                 return res.status(201).end();
             })
-            .catch((err) => {
-                console.log(err)
-                return res.status(500).end();
-            });
+            .catch((err) => next(err));
     }
 
-    const updateById = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['newDescription', 'string'],
-                    ['newWeight', 'number'],
-                    ['newVolume', 'number'],
-                    ['newNotes', 'string'],
-                    ['newPrice', 'number'],
-                    ['newAvailableQuantity', 'number'],
-                ], [
-                    req.body.newWeight >= 0,
-                    req.body.newVolume >= 0,
-                    req.body.newPrice >= 0,
-                    req.body.newAvailableQuantity >= 0,
-                    Number.isInteger(req.body.newAvailableQuantity),
-                    req.body.newNotes.length > 0,
-                    req.body.newDescription.length > 0,
-                    Number.isInteger(parseInt(req.params.id)),
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const updateById = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newDescription', 'string'],
+                ['newWeight', 'number'],
+                ['newVolume', 'number'],
+                ['newNotes', 'string'],
+                ['newPrice', 'number'],
+                ['newAvailableQuantity', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                req.body.newWeight >= 0,
+                req.body.newVolume >= 0,
+                req.body.newPrice >= 0,
+                req.body.newAvailableQuantity >= 0,
+                Number.isInteger(req.body.newAvailableQuantity),
+                req.body.newNotes.length > 0,
+                req.body.newDescription.length > 0,
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
 
         const newDescription = req.body.newDescription;
         const newWeight = req.body.newWeight;
@@ -101,93 +88,62 @@ function skusApi(skuService) {
         const newPrice = req.body.newPrice;
         const newAvailableQuantity = req.body.newAvailableQuantity;
 
-        skuService
-            .updateById(
-                req.params.id,
-                newDescription,
-                newWeight,
-                newVolume,
-                newNotes,
-                newPrice,
-                newAvailableQuantity
-            )
+        skuService.updateById(
+            req.params.id,
+            newDescription,
+            newWeight,
+            newVolume,
+            newNotes,
+            newPrice,
+            newAvailableQuantity
+        )
             .then(() => {
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
-    const updatePosition = (req, res) => {
-
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['position', 'string'],
-                ], [
-                    !isNaN(Number.parseInt(req.params.id)),
-                    req.body.position.lenght === 12,
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const updatePosition = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['position', 'string'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                !isNaN(Number.parseInt(req.params.id)),
+                req.body.position.lenght === 12,
+            ]
+        )
+        if (!conditionsValid) return;
         const position = req.body.position;
 
-        skuService
-            .updatePosition(req.params.id, position)
+        skuService.updatePosition(req.params.id, position)
             .then(() => {
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                if (err instanceof ValidationError) {
-                    return res.status(422).end()
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
 
-    const remove = async (req, res) => {
+    const remove = (req, res, next) => {
 
         const id = req.params.id;
         if (Number(req.params.id) < 0) {
             return res.status(422).json({error: "invalid id"});
         }
-        skuService
-            .remove(id)
+        skuService.remove(id)
             .then((value) => {
                 console.log(`Deleted sku ${value}`)
                 return res.status(204).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
-    const deleteSkuData = async (req, res) => {
+    const deleteSkuData = (req, res, next) => {
         console.log("remove all");
         skuService
             .deleteSkuData()
             .then(() => {
                 return res.status(202).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
     return {
         getById: getById,

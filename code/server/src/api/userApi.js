@@ -1,56 +1,43 @@
 const helper = require('./helper')
-const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function userApi(userService) {
     const apiHelper = helper()
 
     const userTypes = ['customer', 'qualityEmployee', 'clerk', 'deliveryEmployee', 'supplier']
-    const getInfo = (req, res) => {
+    const getInfo = (req, res, next) => {
         userService.getInfo()
             .then((value) => {
                 return res.status(200).json(value);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
-    const getSuppliers = (req, res) => {
+    const getSuppliers = (req, res, next) => {
         userService.getSuppliers()
             .then((value) => {
                 res.status(200).json(value);
             })
-            .catch(() => {
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const getUsers = (req, res) => {
+    const getUsers = (req, res, next) => {
         userService.getUsers()
             .then((rows) => {
                 return res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['name', 'string'],
-                    ['surname', 'string'],
-                ],
-                [
-                    apiHelper.validateEmail(req.body.username)
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next,
+            [['username', 'string'],
+                ['name', 'string'],
+                ['surname', 'string'],]
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
 
         userService.add(
             req.body.username,
@@ -63,192 +50,117 @@ function userApi(userService) {
                 console.log(`User ${id} created`)
                 return res.status(201).end();
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).json({error: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
-    const logInManager = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInManager = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
 
         userService.logInManager(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
+
     }
 
-    const logInCustomer = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInCustomer = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
 
         userService.logInCustomer(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
 
-    const logInSupplier = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInSupplier = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
         userService.logInSupplier(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
 
-    const logInClerk = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInClerk = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
         userService.logInClerk(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
 
-    const logInQualityEmployee = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInQualityEmployee = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
         userService.logInQualityEmployee(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
 
-    const logInDeliveryEmployee = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['username', 'string'],
-                    ['password', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const logInDeliveryEmployee = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+                ['password', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
         userService.logInDeliveryEmployee(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
 
-    const logOut = (req, res) => {
+    const logOut = (req, res, next) => {
         userService.logOut()
             .then(() => {
                 return res.status(200).end();
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).json({error: "Generic error"});
-            })
+            .catch((err) => next(err));
     }
 
-    const update = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['newType', 'string'],
-                    ['oldType', 'string'],
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const update = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newType', 'string'],
+                ['oldType', 'string'],
+            ]
+        )
+        if (!fieldsValid) return;
         userService.update(req.params.username, req.body.newType, req.body.oldType)
             .then(() => {
                 res.status(200).end()
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.error(err)
-                res.status(503).json({error: "error during the update of user's type"})
-            });
+            .catch((err) => next(err));
     }
 
-    const remove = (req, res) => {
+    const remove = (req, res, next) => {
 
         if (req.params.username === undefined ||
             !userTypes.includes(req.params.type) ||
@@ -260,9 +172,7 @@ function userApi(userService) {
             .then(() => {
                 res.status(204).json({message: "user deleted"});
             })
-            .catch(() => {
-                res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
     return {

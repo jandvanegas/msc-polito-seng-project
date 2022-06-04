@@ -1,73 +1,61 @@
 const helper = require("./helper");
-const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function returnOrdersApi(returnOrderService) {
     const apiHelper = helper()
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         returnOrderService
             .getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch(() => {
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['returnDate', 'string'],
-                    ['restockOrderId', 'number'],
-                    ['products', 'object'],
-                ], [
-                    Array.isArray(req.body.products)]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['returnDate', 'string'],
+                ['restockOrderId', 'number'],
+                ['products', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Array.isArray(req.body.products)]
+        )
+        if (!conditionsValid) return;
 
         returnOrderService.add(
             req.body.returnDate,
             req.body.products,
             req.body.restockOrderId,
-        ).then((id) => {
-            console.log(`Created returnOrder ${id}`)
-            return res.status(201).end();
-        })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                return res.status(503).json({error: "generic error"});
-            });
-    }
-    const getById = (req, res) => {
-        if (isNaN(Number.parseInt(req.params.id ))) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        returnOrderService.getById(req.params.id).then((value) => {
-            return res.status(200).json(value);
-        }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err)
-            return res.status(500).json({error: err});
-        });
+        )
+            .then((id) => {
+                console.log(`Created returnOrder ${id}`)
+                return res.status(201).end();
+            })
+            .catch((err) => next(err));
 
     }
-    const remove = async (req, res) => {
+    const getById = (req, res, next) => {
+        if (isNaN(Number.parseInt(req.params.id))) {
+            return res.status(422).json({error: "invalid id"});
+        }
+        returnOrderService.getById(req.params.id)
+            .then((value) => {
+                return res.status(200).json(value);
+            })
+            .catch((err) => next(err));
+    }
+    const remove = (req, res, next) => {
         const id = req.params.id;
         if (Number(req.params.id) < 0) {
             return res.status(422).json({error: "invalid id"});
         }
-        returnOrderService.remove(id).then(() => {
-            console.log(`returnOrder ${id} removed`)
-            return res.status(204).json({message: "returnOrder deleted"});
-        }).catch((err) => {
-            console.log(err)
-            return res.status(503).json({message: "Service Unavailable"});
-        });
+        returnOrderService.remove(id)
+            .then(() => {
+                console.log(`returnOrder ${id} removed`)
+                return res.status(204).json({message: "returnOrder deleted"});
+            })
+            .catch((err) => next(err));
     }
     return {
         getAll: getAll,

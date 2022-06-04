@@ -1,31 +1,22 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
 const helper = require("./helper");
 
 function testDescriptorsApi(testDescriptorService) {
     const apiHelper = helper()
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         testDescriptorService.getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.log(err)
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['name', 'string'],
-                    ['procedureDescription', 'string'],
-                    ['idSKU', 'number'],
-                ], [
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['name', 'string'],
+                ['procedureDescription', 'string'],
+                ['idSKU', 'number'],
+            ]
+        )
+        if (!fieldsValid) return;
 
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
         testDescriptorService.add(
             req.body.name,
             req.body.procedureDescription,
@@ -35,31 +26,20 @@ function testDescriptorsApi(testDescriptorService) {
                 console.log(`testDescriptor ${id} created`)
                 return res.status(201).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.error(err)
-                return res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const getById = (req, res) => {
+    const getById = (req, res, next) => {
         if (Number.isNaN(Number.parseInt(req.params.id))) {
             return res.status(422).json({error: "invalid id"});
         }
         testDescriptorService.getById(req.params.id)
             .then((rows) => {
                 return res.status(200).json(rows);
-            }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err);
-            return res.status(503).end();
-        });
+            })
+            .catch((err) => next(err));
 
     }
-    const update = (req, res) => {
+    const update = (req, res, next) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -78,16 +58,10 @@ function testDescriptorsApi(testDescriptorService) {
                 console.log(`Test descriptor ${id} updated.`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            })
+            .catch((err) => next(err));
     }
 
-    const remove = (req, res) => {
+    const remove = (req, res, next) => {
         const id = req.params.id;
         if (isNaN(Number.parseInt(id))) {
             return res.status(422).json({error: "no id"});
@@ -96,10 +70,7 @@ function testDescriptorsApi(testDescriptorService) {
             .then(() => {
                 return res.status(204).end();
             })
-            .catch((err) => {
-                console.log(err)
-                return res.status(503).json({message: "Service Unavailable"});
-            });
+            .catch((err) => next(err));
     }
     return {
         getAll: getAll,

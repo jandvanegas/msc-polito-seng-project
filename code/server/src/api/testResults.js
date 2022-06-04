@@ -1,51 +1,42 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
 const helper = require("./helper");
 
 function testResultsApi(testResultService) {
     const apiHelper = helper()
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         testResultService
             .getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.error(err)
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['rfid', 'string'],
-                    ['idTestDescriptor', 'number'],
-                    ['Date', 'string'],
-                    ['Result', 'boolean'],
-                ], [
-                    req.body.rfid.length === 32
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['rfid', 'string'],
+                ['idTestDescriptor', 'number'],
+                ['Date', 'string'],
+                ['Result', 'boolean'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                req.body.rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
         testResultService.add(
             req.body.rfid,
             Number(req.body.idTestDescriptor),
             req.body.Date,
             req.body.Result ? 1 : 0,
-        ).then((id) => {
-            console.log(`Test result ${id} created`)
-            return res.status(201).end();
-        })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+        )
+            .then((id) => {
+                console.log(`Test result ${id} created`)
+                return res.status(201).end();
+            })
+            .catch((err) => next(err));
     }
-    const getByRfid = (req, res) => {
+    const getByRfid = (req, res, next) => {
         if (Number.isNaN(Number.parseInt(req.params.rfid)) ||
             req.params.rfid.length !== 32
         ) {
@@ -54,15 +45,10 @@ function testResultsApi(testResultService) {
         testResultService.getByRfid(req.params.rfid)
             .then((rows) => {
                 return res.status(200).json(rows);
-            }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err);
-            return res.status(503).end();
-        });
+            })
+            .catch((err) => next(err));
     }
-    const getByRfidAndId = (req, res) => {
+    const getByRfidAndId = (req, res, next) => {
         if (Number.isNaN(req.params.id)) {
             return res.status(422).json({error: "invalid id"});
         }
@@ -72,29 +58,24 @@ function testResultsApi(testResultService) {
         testResultService.getByRfidAndId(req.params.rfid, Number.parseInt(req.params.id))
             .then((row) => {
                 return res.status(200).json(row);
-            }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err);
-            return res.status(503).end();
-        });
+            })
+            .catch((err) => next(err));
     }
-    const update = (req, res) => {
-        try {
-            apiHelper.validateFields(req, res, [
-                    ['newIdTestDescriptor', 'number'],
-                    ['newDate', 'string'],
-                    ['newResult', 'boolean'],
-                ], [
+    const update = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newIdTestDescriptor', 'number'],
+                ['newDate', 'string'],
+                ['newResult', 'boolean'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
                 !Number.isNaN(Number.parseInt(req.params.id)),
                 !Number.isNaN(Number.parseInt(req.params.rfid)),
-                    req.params.rfid.length === 32
-                ]
-            )
-        } catch (err) {
-            return res.status(422).json({error: err.message});
-        }
+                req.params.rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
         testResultService.update(
             req.params.rfid,
             req.params.id,
@@ -106,32 +87,23 @@ function testResultsApi(testResultService) {
                 console.log(`Test Result ${id} updated`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            })
+            .catch((err) => next(err));
+
     }
 
-    const remove = async (req, res) => {
+    const remove = (req, res, next) => {
         if (Number.isNaN(req.params.id)) {
             return res.status(422).json({error: "invalid id"});
         }
         if (Number.isNaN(req.params.rfid)) {
             return res.status(422).json({error: "invalid rfid"});
         }
-        testResultService.remove(req.params.rfid, req.params.id).then((id) => {
-            console.log(`Test Result ${id} removed`)
-            return res.status(204).end();
-        }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err);
-            return res.status(503).json({message: "Service Unavailable"});
-        });
+        testResultService.remove(req.params.rfid, req.params.id)
+            .then((id) => {
+                console.log(`Test Result ${id} removed`)
+                return res.status(204).end();
+            })
+            .catch((err) => next(err));
     }
     return {
         getAll: getAll,

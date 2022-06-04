@@ -1,31 +1,23 @@
-const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
-
 function restockOrderApi(restockOrderService) {
     const orderStates = ['ISSUED', 'DELIVERY', 'DELIVERED', 'TESTED', 'COMPLETEDRETURN', 'COMPLETED']
 
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         restockOrderService.getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.error(err)
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const getIssued = (req, res) => {
+    const getIssued = (req, res, next) => {
         restockOrderService.getIssued()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.log(err);
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const getById = (req, res) => {
+    const getById = (req, res, next) => {
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
@@ -38,16 +30,10 @@ function restockOrderApi(restockOrderService) {
             .then((value) => {
                 return res.status(200).json(value);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
 
-    const getItems = async (req, res) => {
+    const getItems = (req, res, next) => {
         if (req.params.id === undefined) {
             return res.status(422).json({error: "no id"});
         }
@@ -55,21 +41,14 @@ function restockOrderApi(restockOrderService) {
             return res.status(422).json({error: "wrong id type"});
         }
 
-        restockOrderService.getItems(req.params.id).then((rows) => {
-            return res.status(200).json(rows);
-        }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            if (err instanceof ValidationError) {
-                return res.status(422).json({error: err.message});
-            }
-            console.log(err)
-            return res.status(503).end();
-        });
+        restockOrderService.getItems(req.params.id)
+            .then((rows) => {
+                return res.status(200).json(rows);
+            })
+            .catch((err) => next(err));
     }
 
-    const add = (req, res) => {
+    const add = (req, res, next) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -92,13 +71,10 @@ function restockOrderApi(restockOrderService) {
                 console.log(`Restock order ${id} was created.`)
                 return res.status(201).json({message: "order created"});
             })
-            .catch((err) => {
-                console.log(err);
-                return res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const update = (req, res) => {
+    const update = (req, res, next) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -113,18 +89,10 @@ function restockOrderApi(restockOrderService) {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                if (err instanceof ValidationError) {
-                    return res.status(422).json({error: err.message});
-                }
-                return res.status(503).json({error: "generic error"})
-            })
+            .catch((err) => next(err));
     }
 
-    const addTransportNoteById = (req, res) => {
+    const addTransportNoteById = (req, res, next) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -140,17 +108,9 @@ function restockOrderApi(restockOrderService) {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                if (err instanceof ValidationError) {
-                    return res.status(422).json({error: err.message});
-                }
-                return res.status(503).json({error: "generic error"})
-            })
+            .catch((err) => next(err));
     }
-    const addItems = async (req, res) => {
+    const addItems = (req, res, next) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(422).json({error: "empty body request"});
         }
@@ -163,29 +123,19 @@ function restockOrderApi(restockOrderService) {
                 console.log(`Added items on restock id ${id}`)
                 return res.status(200).json({message: "Items added to the order"})
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                if (err instanceof ValidationError) {
-                    return res.status(422).json({error: err.message});
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
-    const remove = async (req, res) => {
+    const remove = (req, res, next) => {
         const id = req.params.id;
         if (Number(req.params.id) < 0) {
             return res.status(422).json({error: "invalid id"});
         }
-        restockOrderService.remove(id).then(() => {
-            console.log(`returnOrder ${id} removed`)
-            return res.status(204).json({message: "returnOrder deleted"});
-        }).catch((err) => {
-            console.log(err)
-            return res.status(503).json({message: "Service Unavailable"});
-        });
+        restockOrderService.remove(id)
+            .then(() => {
+                console.log(`returnOrder ${id} removed`)
+                return res.status(204).json({message: "returnOrder deleted"});
+            })
+            .catch((err) => next(err));
     }
     return {
         getAll: getAll,
