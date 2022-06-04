@@ -146,6 +146,7 @@ app.post("/api/restockOrder", myRestockOrderApi.add)
 app.put("/api/restockOrder/:id", myRestockOrderApi.update)
 app.put("/api/restockOrder/:id/skuItems", myRestockOrderApi.addItems)
 app.put("/api/restockOrder/:id/transportNote", myRestockOrderApi.addTransportNoteById)
+app.delete("/api/restockOrder/:id", myRestockOrderApi.remove)
 
 //return order
 app.get("/api/returnOrders", myReturnOrdersApi.getAll) //ok

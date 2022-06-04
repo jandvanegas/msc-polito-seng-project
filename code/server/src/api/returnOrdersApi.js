@@ -58,8 +58,8 @@ function returnOrdersApi(returnOrderService) {
     }
     const remove = async (req, res) => {
         const id = req.params.id;
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
+        if (Number(req.params.id) < 0) {
+            return res.status(422).json({error: "invalid id"});
         }
         returnOrderService.remove(id).then(() => {
             console.log(`returnOrder ${id} removed`)

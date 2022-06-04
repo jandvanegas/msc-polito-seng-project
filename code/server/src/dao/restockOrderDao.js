@@ -4,6 +4,7 @@ const {ResourceNotFoundError} = require("../utils/exceptions");
 function restockOrderDao(db) {
     const baseDaoInstance = baseDao(db, "restockOrders", "id")
     const getAll = baseDaoInstance.getAll    // Return an array containing all restock orders.
+    const remove = baseDaoInstance.remove
 
     const getById = (id) => {
         const sql = "SELECT * FROM restockOrders WHERE id = ?";
@@ -97,7 +98,7 @@ function restockOrderDao(db) {
         // Modify the state of a restock order, given its id.
         const sql = "UPDATE restockOrders SET state = ? WHERE id = ?";
         return new Promise(function (resolve, reject) {
-            db.run(sql, [state, id], (err) => {
+            db.run(sql, [state, id], function(err){
                 if (err) {
                     reject(err);
                 } else {
@@ -145,6 +146,7 @@ function restockOrderDao(db) {
         updateState: updateState,
         addItems: addItems,
         addTransportNote: addTransportNote,
+        remove: remove
     }
 }
 

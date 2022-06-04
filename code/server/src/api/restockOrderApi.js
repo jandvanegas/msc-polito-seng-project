@@ -174,7 +174,19 @@ function restockOrderApi(restockOrderService) {
                 return res.status(503).end();
             });
     }
-
+    const remove = async (req, res) => {
+        const id = req.params.id;
+        if (Number(req.params.id) < 0) {
+            return res.status(422).json({error: "invalid id"});
+        }
+        restockOrderService.remove(id).then(() => {
+            console.log(`returnOrder ${id} removed`)
+            return res.status(204).json({message: "returnOrder deleted"});
+        }).catch((err) => {
+            console.log(err)
+            return res.status(503).json({message: "Service Unavailable"});
+        });
+    }
     return {
         getAll: getAll,
         getIssued: getIssued,
@@ -184,6 +196,7 @@ function restockOrderApi(restockOrderService) {
         getItems: getItems,
         addItems: addItems,
         addTransportNoteById: addTransportNoteById,
+        remove: remove
     }
 
 }

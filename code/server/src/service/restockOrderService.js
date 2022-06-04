@@ -73,6 +73,9 @@ function restockOrderService(restockOrderDao) {
         }
         return await restockOrderDao.addItems(id, items)
     }
+    const remove = async (id) => {
+        return await restockOrderDao.remove(id)
+    }
     return {
         getAll: getAll,
         getIssued: getIssued,
@@ -82,6 +85,7 @@ function restockOrderService(restockOrderDao) {
         update: update,
         addItems: addItems,
         addTransportNoteById: addTransportNoteById,
+        remove: remove,
     }
 }
 
