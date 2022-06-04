@@ -14,7 +14,7 @@ function skuItemDao(db) {
         });
     }
     const getBySkuId = (skuId) => {
-        const sql = "SELECT RFID, SKUId, DateOfStock FROM skuItems WHERE SKUId=?";
+        const sql = "SELECT RFID, SKUId, DateOfStock FROM skuItems WHERE SKUId=? and Available=1";
         return new Promise((resolve, reject) => {
             db.all(sql, [skuId], function(err, rows) {
                 if (err) {

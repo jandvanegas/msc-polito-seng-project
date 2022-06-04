@@ -4,7 +4,14 @@ const dayjs = require('dayjs')
 
 function restockOrderService(restockOrderDao) {
     const getAll = async () => {
-        return await restockOrderDao.getAll()
+        const orders = await restockOrderDao.getAll()
+        return orders.map(order => {
+            const {transportNote, skuItems, ...orderCopy} = order
+            return { ...orderCopy,
+                transportNote: order.state !== 'ISSUED' ? transportNote : undefined,
+                skuItems: ['ISSUED', 'DELIVERED'].includes(order.state) ? skuItems : undefined
+            }
+        })
     }
     const getIssued = async () => {
         return await restockOrderDao.getIssuedOrder()

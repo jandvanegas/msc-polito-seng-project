@@ -163,6 +163,7 @@ function skusApi(skuService) {
         skuService
             .remove(id)
             .then((value) => {
+                console.log(`Deleted sku ${value}`)
                 return res.status(204).end();
             })
             .catch((err) => {
