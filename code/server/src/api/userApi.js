@@ -53,11 +53,19 @@ function userApi(userService) {
             .catch((err) => next(err));
     }
     const logInManager = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['username', 'string'],
                 ['password', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
 
         userService.logInManager(req.body.username, req.body.password)
             .then(id => {
@@ -75,6 +83,13 @@ function userApi(userService) {
         )
         if (!fieldsValid) return;
 
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.logInCustomer(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
@@ -84,11 +99,20 @@ function userApi(userService) {
     }
 
     const logInSupplier = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['username', 'string'],
                 ['password', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.logInSupplier(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
@@ -98,11 +122,20 @@ function userApi(userService) {
     }
 
     const logInClerk = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['username', 'string'],
                 ['password', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.logInClerk(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
@@ -112,11 +145,20 @@ function userApi(userService) {
     }
 
     const logInQualityEmployee = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['username', 'string'],
                 ['password', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.logInQualityEmployee(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
@@ -126,11 +168,20 @@ function userApi(userService) {
     }
 
     const logInDeliveryEmployee = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['username', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['username', 'string'],
                 ['password', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.body.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.logInDeliveryEmployee(req.body.username, req.body.password)
             .then(id => {
                 console.log(`User ${id} logged in.`)
@@ -148,11 +199,20 @@ function userApi(userService) {
     }
 
     const update = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newType', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newType', 'string'],
                 ['oldType', 'string'],
             ]
         )
         if (!fieldsValid) return;
+
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.params.username)
+            ]
+        )
+        if (!conditionsValid) return;
+
         userService.update(req.params.username, req.body.newType, req.body.oldType)
             .then(() => {
                 res.status(200).end()
@@ -161,13 +221,14 @@ function userApi(userService) {
     }
 
     const remove = (req, res, next) => {
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                apiHelper.validateEmail(req.params.username),
+                userTypes.includes(req.params.type)
+            ]
+        )
+        if (!conditionsValid) return;
 
-        if (req.params.username === undefined ||
-            !userTypes.includes(req.params.type) ||
-            !apiHelper.validateEmail(req.params.username)
-        ) {
-            return res.status(422).json({error: "params validation error"});
-        }
         userService.remove(req.params.username, req.params.type)
             .then(() => {
                 res.status(204).json({message: "user deleted"});

@@ -10,12 +10,16 @@ function skuItemsApi(skuItemService) {
             .catch((err) => next(err));
     }
     const getBySkuId = (req, res, next) => {
-        const skuID = Number(req.params.skuID)
-        if (isNaN(skuID)) {
-            return res.status(422).json({error: "invalid id"});
-        }
+        const id = Number.parseInt(req.params.skuID)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        skuItemService.getBySkuId(skuID)
+        skuItemService.getBySkuId(id)
             .then((skuItem) => {
                 console.log(`Sku items ${skuItem} returned`)
                 return res.status(200).json(skuItem);
@@ -24,9 +28,14 @@ function skuItemsApi(skuItemService) {
     }
     const getByRfid = (req, res, next) => {
         const rfid = req.params.rfid;
-        if (isNaN(Number(rfid)) || rfid.length !== 32) {
-            return res.status(422).json({error: "rfid error"});
-        }
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
+
         skuItemService.getByRfid(rfid)
             .then((value) => {
                 return res.status(200).json(value);
@@ -34,20 +43,24 @@ function skuItemsApi(skuItemService) {
             .catch((err) => next(err));
     }
     const add = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['RFID', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['RFID', 'string'],
                 ['SKUId', 'number'],
                 ['DateOfStock', 'string'],
             ],
         )
         if (!fieldsValid) return;
+
+        const rfid = req.body.RFID;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
-                isNaN(req.params.rfid)
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
             ]
         )
         if (!conditionsValid) return;
 
-        skuItemService.add(req.body.RFID, req.body.SKUId, req.body.DateOfStock)
+        skuItemService.add(rfid, req.body.SKUId, req.body.DateOfStock)
             .then((id) => {
                 console.log(`skuItem ${id} created.`)
                 return res.status(201).end();
@@ -55,23 +68,25 @@ function skuItemsApi(skuItemService) {
             .catch((err) => next(err));
     }
     const update = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newRFID', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newRFID', 'string'],
                 ['newDateOfStock', 'string'],
                 ['newAvailable', 'number'],
             ],
         )
         if (!fieldsValid) return;
+        const rfid = req.params.rfid;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
-                !isNaN(Number.parseInt(req.params.rfid)),
-                req.params.rfid.length === 32,
+                rfid && Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32,
                 req.body.newRFID.length === 32,
             ]
         )
         if (!conditionsValid) return;
 
         skuItemService.update(
-            req.params.rfid,
+            rfid,
             req.body.newAvailable,
             req.body.newDateOfStock,
             req.body.newRFID
@@ -82,11 +97,17 @@ function skuItemsApi(skuItemService) {
             .catch((err) => next(err));
     }
     const remove = (req, res, next) => {
-        if (isNaN(Number(req.params.rfid)) || req.params.rfid.length !== 32) {
-            return res.status(422).json({error: "body or params validation error"});
-        }
+        const rfid = req.params.rfid;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
+
         skuItemService
-            .remove(req.params.rfid)
+            .remove(rfid)
             .then(() => {
                 res.status(204).json({message: "sku item deleted"});
             })

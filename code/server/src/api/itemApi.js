@@ -42,11 +42,16 @@ function itemApi(itemService) {
             .catch((err) => next(err));
     }
     const getById = (req, res, next) => {
-        const itemID = Number.parseInt(req.params.id)
-        if (!Number.isInteger(itemID)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        itemService.getById(itemID)
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        itemService.getById(id)
             .then((row) => {
                 return res.status(200).json(row);
             })
@@ -54,10 +59,15 @@ function itemApi(itemService) {
 
     }
     const remove = (req, res, next) => {
-        const id = req.params.id;
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
         itemService.remove(id)
             .then(() => {
                 return res.status(204).end()
@@ -65,14 +75,17 @@ function itemApi(itemService) {
             .catch((err) => next(err));
     }
     const update = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newDescription', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newDescription', 'string'],
                 ['newPrice', 'number'],
             ],
         )
         if (!fieldsValid) return;
+        const id = Number.parseInt(req.params.id)
         const conditionsValid = apiHelper.conditionsValid(next,
             [
-                Number.isInteger(Number.parseInt(req.params.id)),
+                Number.isInteger(id),
+                id >= 0
             ]
         )
         if (!conditionsValid) return;

@@ -18,14 +18,18 @@ function testResultsApi(testResultService) {
             ],
         )
         if (!fieldsValid) return;
+
+        const rfid = req.body.rfid;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
-                req.body.rfid.length === 32
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
             ]
         )
         if (!conditionsValid) return;
+
         testResultService.add(
-            req.body.rfid,
+            rfid,
             Number(req.body.idTestDescriptor),
             req.body.Date,
             req.body.Result ? 1 : 0,
@@ -37,68 +41,86 @@ function testResultsApi(testResultService) {
             .catch((err) => next(err));
     }
     const getByRfid = (req, res, next) => {
-        if (Number.isNaN(Number.parseInt(req.params.rfid)) ||
-            req.params.rfid.length !== 32
-        ) {
-            return res.status(422).json({error: "invalid rfid"});
-        }
-        testResultService.getByRfid(req.params.rfid)
+        const rfid = req.params.rfid;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
+
+        testResultService.getByRfid(rfid)
             .then((rows) => {
                 return res.status(200).json(rows);
             })
             .catch((err) => next(err));
     }
     const getByRfidAndId = (req, res, next) => {
-        if (Number.isNaN(req.params.id)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        if (Number.isNaN(req.params.rfid)) {
-            return res.status(422).json({error: "invalid rfid"});
-        }
-        testResultService.getByRfidAndId(req.params.rfid, Number.parseInt(req.params.id))
+        const rfid = req.params.rfid;
+        const id = Number.parseInt(req.params.id);
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(rfid)),
+                Number.isInteger(id),
+                rfid && rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
+
+        testResultService.getByRfidAndId(rfid, id)
             .then((row) => {
                 return res.status(200).json(row);
             })
             .catch((err) => next(err));
     }
     const update = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newIdTestDescriptor', 'number'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newIdTestDescriptor', 'number'],
                 ['newDate', 'string'],
                 ['newResult', 'boolean'],
             ],
         )
         if (!fieldsValid) return;
+
+        const rfid = req.params.rfid;
+        const id = req.params.id;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
-                !Number.isNaN(Number.parseInt(req.params.id)),
-                !Number.isNaN(Number.parseInt(req.params.rfid)),
-                req.params.rfid.length === 32
+                Number.isInteger(Number.parseInt(id)),
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid && rfid.length === 32
             ]
         )
         if (!conditionsValid) return;
+
         testResultService.update(
-            req.params.rfid,
-            req.params.id,
+            rfid,
+            id,
             req.body.newIdTestDescriptor,
             req.body.newDate,
             req.body.newResult,
         )
-            .then((id) => {
-                console.log(`Test Result ${id} updated`)
+            .then((idOut) => {
+                console.log(`Test Result ${idOut} updated`)
                 return res.status(200).end();
             })
             .catch((err) => next(err));
-
     }
 
     const remove = (req, res, next) => {
-        if (Number.isNaN(req.params.id)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        if (Number.isNaN(req.params.rfid)) {
-            return res.status(422).json({error: "invalid rfid"});
-        }
-        testResultService.remove(req.params.rfid, req.params.id)
+        const rfid = req.params.rfid;
+        const id = req.params.id;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(id)),
+                Number.isInteger(Number.parseInt(rfid)),
+                rfid.length === 32
+            ]
+        )
+        if (!conditionsValid) return;
+
+        testResultService.remove(rfid, id)
             .then((id) => {
                 console.log(`Test Result ${id} removed`)
                 return res.status(204).end();

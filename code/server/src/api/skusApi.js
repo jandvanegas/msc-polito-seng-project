@@ -3,10 +3,15 @@ const helper = require("./helper");
 function skusApi(skuService) {
     const apiHelper = helper()
     const getById = (req, res, next) => {
-        if (isNaN(req.params.id)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        skuService.getById(req.params.id)
+        const id = req.params.id;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
+        skuService.getById(id)
             .then((sku) => {
                 return res.status(200).json(sku);
             })
@@ -20,7 +25,8 @@ function skusApi(skuService) {
             .catch((err) => next(err));
     }
     const add = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['description', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['description', 'string'],
                 ['weight', 'number'],
                 ['volume', 'number'],
                 ['notes', 'string'],
@@ -41,6 +47,7 @@ function skusApi(skuService) {
             ]
         )
         if (!conditionsValid) return;
+
         skuService
             .add(
                 req.body.description,
@@ -58,7 +65,8 @@ function skusApi(skuService) {
     }
 
     const updateById = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newDescription', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newDescription', 'string'],
                 ['newWeight', 'number'],
                 ['newVolume', 'number'],
                 ['newNotes', 'string'],
@@ -67,6 +75,7 @@ function skusApi(skuService) {
             ],
         )
         if (!fieldsValid) return;
+        const id = req.params.id;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 req.body.newWeight >= 0,
@@ -76,7 +85,7 @@ function skusApi(skuService) {
                 Number.isInteger(req.body.newAvailableQuantity),
                 req.body.newNotes.length > 0,
                 req.body.newDescription.length > 0,
-                Number.isInteger(parseInt(req.params.id)),
+                Number.isInteger(parseInt(id)),
             ]
         )
         if (!conditionsValid) return;
@@ -89,7 +98,7 @@ function skusApi(skuService) {
         const newAvailableQuantity = req.body.newAvailableQuantity;
 
         skuService.updateById(
-            req.params.id,
+            id,
             newDescription,
             newWeight,
             newVolume,
@@ -103,14 +112,15 @@ function skusApi(skuService) {
             .catch((err) => next(err));
     }
     const updatePosition = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['position', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['position', 'string'],
             ],
         )
         if (!fieldsValid) return;
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 !isNaN(Number.parseInt(req.params.id)),
-                req.body.position.lenght === 12,
+                req.body.position.length === 12,
             ]
         )
         if (!conditionsValid) return;
@@ -126,9 +136,13 @@ function skusApi(skuService) {
     const remove = (req, res, next) => {
 
         const id = req.params.id;
-        if (Number(req.params.id) < 0) {
-            return res.status(422).json({error: "invalid id"});
-        }
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
         skuService.remove(id)
             .then((value) => {
                 console.log(`Deleted sku ${value}`)

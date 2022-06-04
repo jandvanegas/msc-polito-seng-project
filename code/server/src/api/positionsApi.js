@@ -11,7 +11,8 @@ function positionsApi(positionService) {
             .catch((err) => next(err));
     }
     const add = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['positionID', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['positionID', 'string'],
                 ['aisleID', 'string'],
                 ['row', 'string'],
                 ['col', 'string'],
@@ -42,14 +43,15 @@ function positionsApi(positionService) {
             req.body.maxVolume
         )
             .then(() => {
-                res.status(201).json({message: "position created"});
+                res.status(201).end();
             })
             .catch((err) => next(err));
     }
 
     const updateFull = (req, res, next) => {
 
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newAisleID', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newAisleID', 'string'],
                 ['newRow', 'string'],
                 ['newCol', 'string'],
                 ['newMaxWeight', 'number'],
@@ -89,7 +91,8 @@ function positionsApi(positionService) {
             .catch((err) => next(err));
     }
     const update = (req, res, next) => {
-        const fieldsValid = apiHelper.fieldsValid(req, res, next, [['newPositionID', 'string'],
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newPositionID', 'string'],
             ],
         )
         if (!fieldsValid) return;
@@ -109,13 +112,17 @@ function positionsApi(positionService) {
             .catch((err) => next(err));
     }
     const remove = (req, res, next) => {
-        const id = parseInt(req.params.positionID)
-        if (!Number.isInteger(id)) {
-            return res.status(422).json({error: "no id"});
-        }
-        positionService.remove(id)
+        const positionID = Number.parseInt(req.params.positionID)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(positionID),
+            ]
+        )
+        if (!conditionsValid) return;
+
+        positionService.remove(positionID)
             .then((id) => {
-                return res.status(204).json({message: "position deleted"});
+                return res.status(204).end();
             })
             .catch((err) => next(err));
     }

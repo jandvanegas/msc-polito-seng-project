@@ -1,4 +1,7 @@
+const helper = require("./helper");
+
 function internalOrdersApi(internalOrderService) {
+    const apiHelper = helper()
     const getAll = (req, res, next) => {
         internalOrderService.getAll()
             .then((row) => {
@@ -7,9 +10,12 @@ function internalOrdersApi(internalOrderService) {
             .catch((err) => next(err));
     };
     const getById = (req, res, next) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
 
         internalOrderService.getById(req.params.id)
             .then((value) => {
@@ -34,9 +40,19 @@ function internalOrdersApi(internalOrderService) {
     };
 
     const update = (req, res, next) => {
-        if (req.params.id === undefined || Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "body or params validation error"});
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newState', 'string'],
+                ['products', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
         internalOrderService.update(req.params.id, req.body.newState, req.body.products)
             .then((id) => {
                 console.log(`Internal order ${id} updated`)
@@ -45,9 +61,13 @@ function internalOrdersApi(internalOrderService) {
             .catch((err) => next(err));
     }
     const add = (req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "body validation error"});
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['customerId', 'number'],
+                ['products', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+
         internalOrderService
             .add(req.body.issueDate, req.body.products, req.body.customerId)
             .then((id) => {
@@ -57,9 +77,13 @@ function internalOrdersApi(internalOrderService) {
             .catch((err) => next(err));
     };
     const remove = (req, res, next) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "body or params validation error"});
-        }
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
         internalOrderService
             .remove(req.params.id)
             .then(() => {

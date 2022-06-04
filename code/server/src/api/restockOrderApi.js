@@ -1,4 +1,7 @@
+const helper = require("./helper");
+
 function restockOrderApi(restockOrderService) {
+    const apiHelper = helper()
     const orderStates = ['ISSUED', 'DELIVERY', 'DELIVERED', 'TESTED', 'COMPLETEDRETURN', 'COMPLETED']
 
     const getAll = (req, res, next) => {
@@ -18,15 +21,16 @@ function restockOrderApi(restockOrderService) {
     }
 
     const getById = (req, res, next) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        if (req.params.id instanceof Number) {
-            return res.status(422).json({error: "wrong id type"})
-        }
-
-        restockOrderService.getById(req.params.id)
+        restockOrderService.getById(id)
             .then((value) => {
                 return res.status(200).json(value);
             })
@@ -34,14 +38,16 @@ function restockOrderApi(restockOrderService) {
     }
 
     const getItems = (req, res, next) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
-        if (req.params.id instanceof Number) {
-            return res.status(422).json({error: "wrong id type"});
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        restockOrderService.getItems(req.params.id)
+        restockOrderService.getItems(id)
             .then((rows) => {
                 return res.status(200).json(rows);
             })
@@ -49,18 +55,13 @@ function restockOrderApi(restockOrderService) {
     }
 
     const add = (req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-
-        if (req.body.issueDate === undefined || req.body.products === undefined || req.body.supplierId === undefined) {
-            return res.status(422).json({error: "wrong value in the body"})
-
-        }
-
-        if (req.body.issueDate instanceof String || req.body.products instanceof String || req.body.supplierId instanceof Number) {
-            return res.status(422).json({error: "wrong type(s) in the body"})
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['issueDate', 'string'],
+                ['products', 'object'],
+                ['supplierId', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
 
         restockOrderService.add(
             req.body.issueDate,
@@ -75,16 +76,22 @@ function restockOrderApi(restockOrderService) {
     }
 
     const update = (req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newState', 'string'],
+            ],
+        )
+        if (!fieldsValid) return;
 
-        if (typeof (req.body.newState) !== 'string' ||
-            !orderStates.includes(req.body.newState)) {
-            return res.status(422).json({error: "wrong value in the body"})
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        restockOrderService.update(req.params.id, req.body.newState)
+        restockOrderService.update(id, req.body.newState)
             .then((id) => {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()
@@ -93,16 +100,22 @@ function restockOrderApi(restockOrderService) {
     }
 
     const addTransportNoteById = (req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['transportNote', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
 
-        if (typeof (req.body.transportNote) !== 'object' ||
-            req.body.transportNote.deliveryDate === undefined) {
-            return res.status(422).json({error: "wrong value in the body"})
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        restockOrderService.addTransportNoteById(req.params.id, req.body.transportNote,
+        restockOrderService.addTransportNoteById(id, req.body.transportNote,
             req.body.transportNote.deliveryDate)
             .then((id) => {
                 console.log(`Restock order updated ${id}`)
@@ -111,14 +124,22 @@ function restockOrderApi(restockOrderService) {
             .catch((err) => next(err));
     }
     const addItems = (req, res, next) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-        if (req.body.skuItems instanceof String) {
-            return res.status(422).json({error: "wrong type in the body"})
-        }
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['skuItems', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
 
-        restockOrderService.addItems(req.params.id, req.body.skuItems)
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        restockOrderService.addItems(id, req.body.skuItems)
             .then((id) => {
                 console.log(`Added items on restock id ${id}`)
                 return res.status(200).json({message: "Items added to the order"})
@@ -126,10 +147,15 @@ function restockOrderApi(restockOrderService) {
             .catch((err) => next(err));
     }
     const remove = (req, res, next) => {
-        const id = req.params.id;
-        if (Number(req.params.id) < 0) {
-            return res.status(422).json({error: "invalid id"});
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
+
         restockOrderService.remove(id)
             .then(() => {
                 console.log(`returnOrder ${id} removed`)

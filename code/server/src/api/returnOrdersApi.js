@@ -36,20 +36,31 @@ function returnOrdersApi(returnOrderService) {
 
     }
     const getById = (req, res, next) => {
-        if (isNaN(Number.parseInt(req.params.id))) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        returnOrderService.getById(req.params.id)
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        returnOrderService.getById(id)
             .then((value) => {
                 return res.status(200).json(value);
             })
             .catch((err) => next(err));
     }
     const remove = (req, res, next) => {
-        const id = req.params.id;
-        if (Number(req.params.id) < 0) {
-            return res.status(422).json({error: "invalid id"});
-        }
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
+
         returnOrderService.remove(id)
             .then(() => {
                 console.log(`returnOrder ${id} removed`)
