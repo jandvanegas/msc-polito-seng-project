@@ -1,14 +1,36 @@
 const {ValidationError} = require("../utils/exceptions");
 
+const dayjs = require('dayjs')
+
 function restockOrderService(restockOrderDao) {
     const getAll = async () => {
-        return await restockOrderDao.getAll()
+        const orders = await restockOrderDao.getAll()
+        return orders.map(order => {
+            const {transportNote, skuItems, ...orderCopy} = order
+            return { ...orderCopy,
+                transportNote: order.state !== 'ISSUED' ? transportNote : undefined,
+                skuItems: ['ISSUED', 'DELIVERED'].includes(order.state) ? skuItems : undefined
+            }
+        })
     }
     const getIssued = async () => {
         return await restockOrderDao.getIssuedOrder()
     }
     const getById = async (id) => {
         return await restockOrderDao.getById(id)
+    }
+    const addTransportNoteById = async (id, transportNote, deliveryDate) => {
+        const order = await restockOrderDao.getById(id)
+        const dayjsIssueDate = dayjs(order.issueDate)
+        const dayjsDeliveryDate = dayjs(deliveryDate)
+        if (dayjsDeliveryDate.diff(dayjsIssueDate) < 0) {
+            throw new ValidationError('Delivery Date before issue date')
+        }
+        if (order.state !== 'DELIVERY') {
+            throw new ValidationError('State different than DELIVERY')
+
+        }
+        return await restockOrderDao.addTransportNote(id, transportNote)
     }
     const getItems = async (
         id,
@@ -34,6 +56,7 @@ function restockOrderService(restockOrderDao) {
         id,
         newState,
     ) => {
+        await restockOrderDao.getById(id)
         return await restockOrderDao.updateState(id, newState)
     }
     const addItems = async (
@@ -50,6 +73,9 @@ function restockOrderService(restockOrderDao) {
         }
         return await restockOrderDao.addItems(id, items)
     }
+    const remove = async (id) => {
+        return await restockOrderDao.remove(id)
+    }
     return {
         getAll: getAll,
         getIssued: getIssued,
@@ -58,6 +84,8 @@ function restockOrderService(restockOrderDao) {
         add: add,
         update: update,
         addItems: addItems,
+        addTransportNoteById: addTransportNoteById,
+        remove: remove,
     }
 }
 

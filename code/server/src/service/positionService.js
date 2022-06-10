@@ -21,7 +21,7 @@ function positionService(positionDao) {
             )
     }
     const updateFull = async (
-        positionId,
+        positionID,
         newAisleID,
         newRow,
         newCol,

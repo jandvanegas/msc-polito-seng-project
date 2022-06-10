@@ -1,4 +1,4 @@
-function itemService(itemDao) {
+function itemService(itemDao, skuDao) {
     const getAll = async () => {
         return await itemDao.getAll()
     }
@@ -9,6 +9,7 @@ function itemService(itemDao) {
         SKUId,
         supplierId,
     ) => {
+        await skuDao.getById(SKUId)
         return await itemDao.add(
             id,
             description,

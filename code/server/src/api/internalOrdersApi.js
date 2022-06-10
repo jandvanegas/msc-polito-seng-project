@@ -1,97 +1,96 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function internalOrdersApi(internalOrderService) {
-    const getAll = (req, res) => {
+    const apiHelper = helper()
+    const getAll = (req, res, next) => {
         internalOrderService.getAll()
             .then((row) => {
                 return res.status(200).json(row);
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).json({error: "Internal server error"});
-            });
+            .catch((err) => next(err));
     };
-    const getById = async (req, res) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+    const getById = (req, res, next) => {
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
 
         internalOrderService.getById(req.params.id)
             .then((value) => {
                 return res.status(200).json(value);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
-    const getAcceptedOrders = (req, res) => {
+    const getAcceptedOrders = (req, res, next) => {
         return internalOrderService.getAcceptedOrders()
             .then((rows) => {
                 return res.status(200).json(rows);
             })
-            .catch(() => {
-                return res.status(500).json({error: "general error"});
-            });
+            .catch((err) => next(err));
     };
 
-    const getIssuedOrders = async (req, res) => {
+    const getIssuedOrders = (req, res, next) => {
         return internalOrderService.getIssuedOrders()
             .then((rows) => {
                 return res.status(200).json(rows);
             })
-            .catch(() => {
-                return res.status(500).json({error: "general error"});
-            });
+            .catch((err) => next(err));
     };
 
-    const update = (req, res) => {
-        if (req.params.id === undefined || Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "body or params validation error"});
-        }
+    const update = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newState', 'string'],
+                ['products', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
         internalOrderService.update(req.params.id, req.body.newState, req.body.products)
             .then((id) => {
                 console.log(`Internal order ${id} updated`)
                 return res.status(200).end();
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).end();
-            })
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "body validation error"});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['customerId', 'number'],
+                ['products', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+
         internalOrderService
             .add(req.body.issueDate, req.body.products, req.body.customerId)
             .then((id) => {
                 console.log(`Internal order ${id} created`)
                 return res.status(201).end()
             })
-            .catch((err) => {
-                console.error(err);
-                return res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     };
-    const remove = (req, res) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "body or params validation error"});
-        }
+    const remove = (req, res, next) => {
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(parseInt(req.params.id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
         internalOrderService
             .remove(req.params.id)
             .then(() => {
                 res.status(204).end()
             })
-            .catch(() => {
-                res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     };
-    // internalOrders Accepted is still remaining
-
     return {
         getAll: getAll,
         getById: getById,

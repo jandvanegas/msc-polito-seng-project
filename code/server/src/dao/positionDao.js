@@ -2,13 +2,13 @@ const {baseDao} = require('./dao')
 const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function positionDao(db) {
-    const baseDaoInstance = baseDao(db, "positions", "position")
+    const baseDaoInstance = baseDao(db, "positions", "positionID")
     const remove = baseDaoInstance.remove
     const getById = baseDaoInstance.getById
     const getAll = baseDaoInstance.getAll
 
     const update = (position, newWeight, newVolume, oldWeight, oldVolume) => {
-        const sql = "UPDATE positions SET occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE position=? ";
+        const sql = "UPDATE positions SET occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE positionID=? ";
         const list = [oldWeight, newWeight, oldVolume, newVolume, position];
         return new Promise((resolve, reject) => {
             db.run(sql, list, function(err) {
@@ -23,7 +23,7 @@ function positionDao(db) {
 
     const add = (positionID, aisleID, row, col, maxWeight, maxVolume) => {
         const sql =
-            "INSERT INTO positions(position, aisleID, row, col, maxWeight, maxVolume, occupiedWeight, occupiedVolume) VALUES (?,?,?,?,?,?,?,?)";
+            "INSERT INTO positions(positionID, aisleID, row, col, maxWeight, maxVolume, occupiedWeight, occupiedVolume) VALUES (?,?,?,?,?,?,?,?)";
         const list = [positionID, aisleID, row, col, maxWeight, maxVolume, 0, 0];
         return new Promise((resolve, reject) => {
             db.run(sql, list, function(err) {
@@ -48,7 +48,7 @@ function positionDao(db) {
         positionID
     ) => {
         const sql =
-            "UPDATE positions SET aisleID=?, row=?, col=?, maxWeight=?, maxVolume=?, occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE position=?";
+            "UPDATE positions SET aisleID=?, row=?, col=?, maxWeight=?, maxVolume=?, occupiedWeight=occupiedWeight-?+?, occupiedVolume=occupiedVolume-?+? WHERE positionID=?";
         const list = [
             newAisleID,
             newRow,
@@ -72,7 +72,7 @@ function positionDao(db) {
         })
     }
     const updateId = (oldID, newID) => {
-        const sql = "UPDATE positions SET position=? WHERE position=?"
+        const sql = "UPDATE positions SET positionID=? WHERE positionID=?"
         const list = [newID, oldID]
         return new Promise((resolve, reject) => {
             db.run(sql, list, function(err) {

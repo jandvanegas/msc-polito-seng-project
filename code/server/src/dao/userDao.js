@@ -32,23 +32,26 @@ function userDao(db) {
                     if (rows.length > 0) {
                         resolve(rows[0])
                     }
-                    reject(new ResourceNotFoundError('Resource not found'))
+                    reject(new ResourceNotFoundError('users'))
                 }
             });
         });
     }
 
-    const getUserByUsername = (username) => {
+    const getUserByUsernameAndType = (username, type) => {
         const sql = `SELECT *
                      FROM users
-                     WHERE username = ?`;
-        const list = [username];
+                     WHERE username = ? and type = ?`;
+        const list = [username, type];
         return new Promise((resolve, reject) => {
             db.all(sql, list, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(rows);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError('users'))
                 }
             });
         });
@@ -161,7 +164,7 @@ function userDao(db) {
         logIn: logIn,
         logOut: logOut,
         update: update,
-        getUserByUsername: getUserByUsername,
+        getUserByUsernameAndType: getUserByUsernameAndType,
         remove: remove,
     }
 }

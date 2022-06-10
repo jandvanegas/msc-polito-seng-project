@@ -18,9 +18,11 @@ function testResultService(testResultDao, skuItemDao, testDescriptorDao) {
         )
     }
     const getByRfid = async (rfid) => {
+        await skuItemDao.getByRfid(rfid)
         return await testResultDao.getByRfid(rfid)
     }
     const getByRfidAndId = async (rfid, id) => {
+        await skuItemDao.getByRfid(rfid)
         return await testResultDao.getByRfidAndId(rfid, id)
     }
 

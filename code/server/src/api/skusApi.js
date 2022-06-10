@@ -1,36 +1,53 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function skusApi(skuService) {
-    const getById = (req, res) => {
-        if (isNaN(req.params.id)) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        skuService.getById(req.params.id)
+    const apiHelper = helper()
+    const getById = (req, res, next) => {
+        const id = req.params.id;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
+        skuService.getById(id)
             .then((sku) => {
                 return res.status(200).json(sku);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(500).end();
-            })
+            .catch((err) => next(err));
     }
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         skuService.getAll()
             .then((skus) => {
                 return res.status(200).json(skus);
             })
-            .catch((err) => {
-                console.log(err)
-                return res.status(500).end();
-            })
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['description', 'string'],
+                ['weight', 'number'],
+                ['volume', 'number'],
+                ['notes', 'string'],
+                ['price', 'number'],
+                ['availableQuantity', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                req.body.weight >= 0,
+                req.body.volume >= 0,
+                req.body.price >= 0,
+                req.body.availableQuantity >= 0,
+                Number.isInteger(req.body.availableQuantity),
+                req.body.description.length > 0,
+                req.body.notes.length > 0
+            ]
+        )
+        if (!conditionsValid) return;
+
         skuService
             .add(
                 req.body.description,
@@ -44,20 +61,34 @@ function skusApi(skuService) {
                 console.log(`Sku ${id} created.`)
                 return res.status(201).end();
             })
-            .catch((err) => {
-                console.log(err)
-                return res.status(500).end();
-            });
+            .catch((err) => next(err));
     }
 
-    const updateById = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+    const updateById = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newDescription', 'string'],
+                ['newWeight', 'number'],
+                ['newVolume', 'number'],
+                ['newNotes', 'string'],
+                ['newPrice', 'number'],
+                ['newAvailableQuantity', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
         const id = req.params.id;
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                req.body.newWeight >= 0,
+                req.body.newVolume >= 0,
+                req.body.newPrice >= 0,
+                req.body.newAvailableQuantity >= 0,
+                Number.isInteger(req.body.newAvailableQuantity),
+                req.body.newNotes.length > 0,
+                req.body.newDescription.length > 0,
+                Number.isInteger(parseInt(id)),
+            ]
+        )
+        if (!conditionsValid) return;
 
         const newDescription = req.body.newDescription;
         const newWeight = req.body.newWeight;
@@ -66,85 +97,67 @@ function skusApi(skuService) {
         const newPrice = req.body.newPrice;
         const newAvailableQuantity = req.body.newAvailableQuantity;
 
-        skuService
-            .updateById(
-                id,
-                newDescription,
-                newWeight,
-                newVolume,
-                newNotes,
-                newPrice,
-                newAvailableQuantity
-            )
+        skuService.updateById(
+            id,
+            newDescription,
+            newWeight,
+            newVolume,
+            newNotes,
+            newPrice,
+            newAvailableQuantity
+        )
             .then(() => {
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
-    const updatePosition = (req, res) => {
-
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-        const id = req.params.id;
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+    const updatePosition = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['position', 'string'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                !isNaN(Number.parseInt(req.params.id)),
+                req.body.position.length === 12,
+            ]
+        )
+        if (!conditionsValid) return;
         const position = req.body.position;
 
-        skuService
-            .updatePosition(id, position)
+        skuService.updatePosition(req.params.id, position)
             .then(() => {
                 return res.status(200).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
 
-    const remove = async (req, res) => {
+    const remove = (req, res, next) => {
 
         const id = req.params.id;
-        if (Number(req.params.id) < 0) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        skuService
-            .remove(id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(Number.parseInt(id)),
+            ]
+        )
+        if (!conditionsValid) return;
+
+        skuService.remove(id)
             .then((value) => {
-                return res.status(202).end();
+                console.log(`Deleted sku ${value}`)
+                return res.status(204).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
-    const deleteSkuData = async (req, res) => {
+    const deleteSkuData = (req, res, next) => {
         console.log("remove all");
         skuService
             .deleteSkuData()
             .then(() => {
                 return res.status(202).end();
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err);
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     };
     return {
         getById: getById,

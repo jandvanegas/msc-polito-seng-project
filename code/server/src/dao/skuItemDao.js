@@ -14,17 +14,13 @@ function skuItemDao(db) {
         });
     }
     const getBySkuId = (skuId) => {
-        const sql = "SELECT RFID, SKUId, DateOfStock FROM skuItems WHERE SKUId=?";
+        const sql = "SELECT RFID, SKUId, DateOfStock FROM skuItems WHERE SKUId=? and Available=1";
         return new Promise((resolve, reject) => {
             db.all(sql, [skuId], function(err, rows) {
                 if (err) {
-
                     reject(err);
                 } else {
-                    if (rows.length > 0) {
-                        resolve(rows[0])
-                    }
-                    reject(new ResourceNotFoundError('Sku item not found'))
+                    resolve(rows)
                 }
             });
         });
@@ -33,11 +29,14 @@ function skuItemDao(db) {
         const sql = "SELECT * FROM skuItems WHERE rfid=?";
         const list = [rfid];
         return new Promise((resolve, reject) => {
-            db.all(sql, list, (err, row) => {
+            db.all(sql, list, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(row[0]);
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError('Resource not found'))
                 }
             });
         });

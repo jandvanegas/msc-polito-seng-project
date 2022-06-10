@@ -1,19 +1,33 @@
-const {ResourceNotFoundError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function itemApi(itemService) {
-    const getAll = (req, res) => {
+    const apiHelper = helper()
+    const getAll = (req, res, next) => {
         itemService.getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch(() => {
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next,
+            [['id', 'number'],
+                ['description', 'string'],
+                ['price', 'number'],
+                ['SKUId', 'number'],
+                ['supplierId', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(req.body.id),
+                Number.isInteger(req.body.SKUId),
+                Number.isInteger(req.body.supplierId),
+            ]
+        )
+        if (!conditionsValid) return;
+
         itemService.add(
             req.body.id,
             req.body.description,
@@ -25,55 +39,63 @@ function itemApi(itemService) {
                 console.log(`item ${id} created`)
                 return res.status(201).end()
             })
-            .catch((err) => {
-                console.error(err)
-                return res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
-    const getById = (req, res) => {
-        if (req.params.id instanceof String) {
-            return res.status(422).json({error: "invalid id"});
-        }
-        itemService.getById(req.params.id).then((row) => {
-            return res.status(200).json(row);
-        }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            console.log(err)
-            return res.status(503).end();
-        });
+    const getById = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        itemService.getById(id)
+            .then((row) => {
+                return res.status(200).json(row);
+            })
+            .catch((err) => next(err));
 
     }
-    const remove = async (req, res) => {
-        const id = req.params.id;
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
-        itemService.remove(id).then(() => {
-            return res.status(204).end()
-        }).catch((err) => {
-            console.log(err)
-            return res.status(503).json({message: "Service Unavailable"});
-        });
+    const remove = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        itemService.remove(id)
+            .then(() => {
+                return res.status(204).end()
+            })
+            .catch((err) => next(err));
     }
-    const update = (req, res) => {
-        if (isNaN(req.params.id)) {
-            return res.status(422).json({error: "no id"});
-        }
+    const update = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newDescription', 'string'],
+                ['newPrice', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
 
         itemService.update(req.params.id, req.body.newDescription, req.body.newPrice)
             .then((id) => {
                 console.log(`Item ${id} update`)
                 return res.status(200).end()
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            })
+            .catch((err) => next(err));
     }
     return {
         getAll: getAll,

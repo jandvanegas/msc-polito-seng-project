@@ -36,10 +36,12 @@ const internalOrdersApi = require('./src/api/internalOrdersApi')
 const itemApi = require('./src/api/itemApi')
 const itemService = require("./src/service/itemService");
 const restockOrderApi = require('./src/api/restockOrderApi')
+const {ResourceNotFoundError, ValidationError} = require("./src/utils/exceptions");
 
 const app = new express();
 const port = 3001;
 app.use(express.json());
+
 
 const db = new sqlite.Database("ezwh.sqlite", (err) => {
     if (err) throw err;
@@ -64,11 +66,11 @@ const myRestockOrderDao = restockOrderDao(db)
 const mySkuService = skuService(mySkuDao, myPositionDao)
 const myPositionService = positionService(myPositionDao)
 const mySkuItemService = skuItemService(mySkuItemDao, mySkuDao)
-const myReturnOrderService = returnOrderService(myReturnOrdersDao)
+const myReturnOrderService = returnOrderService(myReturnOrdersDao, myRestockOrderDao)
 const myTestDescriptorService = testDescriptorService(myTestDescriptorDao, mySkuDao)
 const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myTestDescriptorDao)
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
-const myItemService = itemService(myItemDao)
+const myItemService = itemService(myItemDao, mySkuDao)
 const myUserService = userService(myUserDao)
 const myRestockOrderService = restockOrderService(myRestockOrderDao)
 
@@ -110,7 +112,7 @@ app.delete("/api/position/:positionID", myPositionApi.remove);
 //test descriptor
 app.get("/api/testDescriptors", myTestDescriptorsApi.getAll)
 app.post("/api/testDescriptor", myTestDescriptorsApi.add)
-app.get("/api/testDescriptor/:id", myTestDescriptorsApi.getById);
+app.get("/api/testDescriptors/:id", myTestDescriptorsApi.getById);
 app.post("/api/testDescriptor", myTestDescriptorsApi.add)
 app.put("/api/testDescriptor/:id", myTestDescriptorsApi.update);
 app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
@@ -119,8 +121,8 @@ app.delete("/api/testDescriptor/:id", myTestDescriptorsApi.remove);
 app.post("/api/skuitems/testResult", myTestResultApi.add)
 app.get("/api/skuitems/:rfid/testResults", myTestResultApi.getByRfid)
 app.get("/api/skuitems/:rfid/testResults/:id", myTestResultApi.getByRfidAndId)
-app.put("/api/skuitems/:rfid/testResults/:id", myTestResultApi.update)
-app.delete("/api/skuitems/:rfid/testResults/:id", myTestResultApi.remove)
+app.put("/api/skuitems/:rfid/testResult/:id", myTestResultApi.update)
+app.delete("/api/skuitems/:rfid/testResult/:id", myTestResultApi.remove)
 
 //user
 app.get("/api/userinfo", myUserApi.getInfo)
@@ -145,6 +147,8 @@ app.get("/api/restockOrders/:id/returnItems", myRestockOrderApi.getItems)
 app.post("/api/restockOrder", myRestockOrderApi.add)
 app.put("/api/restockOrder/:id", myRestockOrderApi.update)
 app.put("/api/restockOrder/:id/skuItems", myRestockOrderApi.addItems)
+app.put("/api/restockOrder/:id/transportNote", myRestockOrderApi.addTransportNoteById)
+app.delete("/api/restockOrder/:id", myRestockOrderApi.remove)
 
 //return order
 app.get("/api/returnOrders", myReturnOrdersApi.getAll) //ok
@@ -169,6 +173,17 @@ app.post("/api/item", myItemApi.add); //ok
 app.put("/api/item/:id", myItemApi.update); //ok
 app.delete("/api/items/:id", myItemApi.remove); //ok
 
+
+app.use((err, req, res, next) => {
+    if (err instanceof ResourceNotFoundError) {
+        res.status(404).end();
+    }
+    if (err instanceof ValidationError) {
+        res.status(422).json({error: err.message});
+    }
+    console.log(err)
+    res.status(503).end();
+})
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

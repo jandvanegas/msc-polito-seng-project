@@ -1,87 +1,67 @@
-const {ResourceNotFoundError, ValidationError} = require("../utils/exceptions");
+const helper = require("./helper");
 
 function restockOrderApi(restockOrderService) {
-    const orderStates = ['issued', 'delivery', 'delivered', 'tested', 'completedreturn', 'return']
+    const apiHelper = helper()
+    const orderStates = ['ISSUED', 'DELIVERY', 'DELIVERED', 'TESTED', 'COMPLETEDRETURN', 'COMPLETED']
 
-    const getAll = (req, res) => {
+    const getAll = (req, res, next) => {
         restockOrderService.getAll()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.error(err)
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const getIssued = (req, res) => {
+    const getIssued = (req, res, next) => {
         restockOrderService.getIssued()
             .then((rows) => {
                 res.status(200).json(rows);
             })
-            .catch((err) => {
-                console.log(err);
-                res.status(500).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const getById = (req, res) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
+    const getById = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        if (req.params.id instanceof Number) {
-            return res.status(422).json({error: "wrong id type"})
-        }
-
-        restockOrderService.getById(req.params.id)
+        restockOrderService.getById(id)
             .then((value) => {
                 return res.status(200).json(value);
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
 
-    const getItems = async (req, res) => {
-        if (req.params.id === undefined) {
-            return res.status(422).json({error: "no id"});
-        }
-        if (req.params.id instanceof Number) {
-            return res.status(422).json({error: "wrong id type"});
-        }
+    const getItems = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        restockOrderService.getItems(req.params.id).then((rows) => {
-            return res.status(200).json(rows);
-        }).catch((err) => {
-            if (err instanceof ResourceNotFoundError) {
-                return res.status(404).end();
-            }
-            if (err instanceof ValidationError) {
-                return res.status(422).json({error: err.message});
-            }
-            console.log(err)
-            return res.status(503).end();
-        });
+        restockOrderService.getItems(id)
+            .then((rows) => {
+                return res.status(200).json(rows);
+            })
+            .catch((err) => next(err));
     }
 
-    const add = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-
-        if (req.body.issueDate === undefined || req.body.products === undefined || req.body.supplierId === undefined) {
-            return res.status(422).json({error: "wrong value in the body"})
-
-        }
-
-        if (req.body.issueDate instanceof String || req.body.products instanceof String || req.body.supplierId instanceof Number) {
-            return res.status(422).json({error: "wrong type(s) in the body"})
-        }
+    const add = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['issueDate', 'string'],
+                ['products', 'object'],
+                ['supplierId', 'number'],
+            ],
+        )
+        if (!fieldsValid) return;
 
         restockOrderService.add(
             req.body.issueDate,
@@ -92,60 +72,97 @@ function restockOrderApi(restockOrderService) {
                 console.log(`Restock order ${id} was created.`)
                 return res.status(201).json({message: "order created"});
             })
-            .catch((err) => {
-                console.log(err);
-                return res.status(503).json({error: "generic error"});
-            });
+            .catch((err) => next(err));
     }
 
-    const update = (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
+    const update = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['newState', 'string'],
+            ],
+        )
+        if (!fieldsValid) return;
 
-        if (req.body.newState === undefined) {
-            return res.status(422).json({error: "wrong value in the body"})
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
 
-        }
-
-        if (req.body.newState instanceof String) {
-            return res.status(422).json({error: "wrong type in the body"})
-        }
-
-        restockOrderService.updateState(req.params.id, req.body.newState)
+        restockOrderService.update(id, req.body.newState)
             .then((id) => {
                 console.log(`Restock order updated ${id}`)
                 return res.status(200).end()
-            }).catch(() => {
-            return res.status(503).json({error: "generic error"})
-        })
+            })
+            .catch((err) => next(err));
     }
 
-    const addItems = async (req, res) => {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(422).json({error: "empty body request"});
-        }
-        if (req.body.skuItems instanceof String) {
-            return res.status(422).json({error: "wrong type in the body"})
-        }
+    const addTransportNoteById = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['transportNote', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
 
-        restockOrderService.addItems(req.params.id, req.body.skuItems)
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        restockOrderService.addTransportNoteById(id, req.body.transportNote,
+            req.body.transportNote.deliveryDate)
+            .then((id) => {
+                console.log(`Restock order updated ${id}`)
+                return res.status(200).end()
+            })
+            .catch((err) => next(err));
+    }
+    const addItems = (req, res, next) => {
+        const fieldsValid = apiHelper.fieldsValid(req, res, next, [
+                ['skuItems', 'object'],
+            ],
+        )
+        if (!fieldsValid) return;
+
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >=0
+            ]
+        )
+        if (!conditionsValid) return;
+
+        restockOrderService.addItems(id, req.body.skuItems)
             .then((id) => {
                 console.log(`Added items on restock id ${id}`)
                 return res.status(200).json({message: "Items added to the order"})
             })
-            .catch((err) => {
-                if (err instanceof ResourceNotFoundError) {
-                    return res.status(404).end();
-                }
-                if (err instanceof ValidationError) {
-                    return res.status(422).json({error: err.message});
-                }
-                console.log(err)
-                return res.status(503).end();
-            });
+            .catch((err) => next(err));
     }
+    const remove = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const conditionsValid = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid) return;
 
+        restockOrderService.remove(id)
+            .then(() => {
+                console.log(`returnOrder ${id} removed`)
+                return res.status(204).json({message: "returnOrder deleted"});
+            })
+            .catch((err) => next(err));
+    }
     return {
         getAll: getAll,
         getIssued: getIssued,
@@ -154,6 +171,8 @@ function restockOrderApi(restockOrderService) {
         update: update,
         getItems: getItems,
         addItems: addItems,
+        addTransportNoteById: addTransportNoteById,
+        remove: remove
     }
 
 }

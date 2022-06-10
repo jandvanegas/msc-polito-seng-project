@@ -1,4 +1,5 @@
 const {baseDao} = require("./dao");
+const {ResourceNotFoundError} = require("../utils/exceptions");
 
 function skuDao(db) {
     const baseDaoInstance = baseDao(db, "skus", "id")
@@ -94,15 +95,29 @@ function skuDao(db) {
             })
           })
     }
+    const getByPosition = (position) => {
+        const sql = `SELECT * FROM skus WHERE position=?`;
+        const list = [position];
+        return new Promise((resolve, reject) => {
+            db.all(sql, list, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows)
+                }
+            });
+        });
+    }
     return {
         getAll: getAll,
-        getById: getById, 
-        add: add, 
-        updateSku: updateSku, 
-        updatePosition: updatePosition, 
-        remove: remove, 
+        getById: getById,
+        add: add,
+        updateSku: updateSku,
+        updatePosition: updatePosition,
+        remove: remove,
         deleteSkuData: deleteSkuData,
-        resetIndex:resetIndex
+        resetIndex:resetIndex,
+        getByPosition: getByPosition,
     }
 }
 

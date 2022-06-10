@@ -71,7 +71,7 @@ function baseDao(db, table, idName) {
                     if (rows.length > 0) {
                         resolve(rows[0])
                     }
-                    reject(new ResourceNotFoundError('Resource not found'))
+                    reject(new ResourceNotFoundError(`${table}`))
                 }
             });
         });
