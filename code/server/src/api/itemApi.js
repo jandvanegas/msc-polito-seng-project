@@ -46,7 +46,7 @@ function itemApi(itemService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
@@ -63,7 +63,7 @@ function itemApi(itemService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
@@ -97,12 +97,93 @@ function itemApi(itemService) {
             })
             .catch((err) => next(err));
     }
+
+    const getByIdAndSupplierId = (req, res, next) => {
+        const id = Number.parseInt(req.params.id)
+        const supplierId = Number.parseInt(req.params.supplierId)
+
+        const conditionsValid1 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        const conditionsValid2 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(supplierId),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid1 || !conditionsValid2) return;
+        itemService.getByIdAndSupplierId(req.params.id, req.params.supplierId)
+            .then((item) => {
+                return res.status(200).json(item)
+            }).catch((err) => next(err));
+    }
+
+    const updateByIdAndSupplierId = (req, res, next) => {
+        //params
+        const id = Number.parseInt(req.params.id)
+        const supplierId = Number.parseInt(req.params.supplierId)
+        const conditionsValid1 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        const conditionsValid2 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(supplierId),
+                id >= 0
+            ]
+        )
+        //body
+        const fieldsValid = apiHelper.fieldsValid(req, res, next,
+            [
+                ['newDescription', 'string'],
+                ['newPrice', 'number'],
+            ],
+        )
+        if (!conditionsValid1 || !conditionsValid2 || !fieldsValid) return;
+
+        itemService.updateByIdAndSupplierId(req.params.id, req.params.supplierId, req.body.newDescription, req.body.newPrice)
+            .then((item) => {
+                return res.status(200).json(item)
+            }).catch((err) => next(err));
+    }
+
+    const deleteByIdAndSupplierId = (req, res, next) => {
+        //params
+        const id = Number.parseInt(req.params.id)
+        const supplierId = Number.parseInt(req.params.supplierId)
+        const conditionsValid1 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(id),
+                id >= 0
+            ]
+        )
+        const conditionsValid2 = apiHelper.conditionsValid(next,
+            [
+                Number.isInteger(supplierId),
+                id >= 0
+            ]
+        )
+        if (!conditionsValid1 || !conditionsValid2) return;
+        itemService.deleteByIdAndSupplierId(req.params.id, req.params.supplierId)
+            .then((item) => {
+                return res.status(200).json(item)
+            }).catch((err) => next(err));
+    }
+
     return {
         getAll: getAll,
         add: add,
         getById: getById,
         remove: remove,
-        update: update
+        update: update,
+        getByIdAndSupplierId: getByIdAndSupplierId,
+        updateByIdAndSupplierId: updateByIdAndSupplierId,
+        deleteByIdAndSupplierId: deleteByIdAndSupplierId
     }
 }
 

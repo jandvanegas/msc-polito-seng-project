@@ -19,6 +19,7 @@
     "nyc": "^15.1.0"
   },
   "scripts": {
+    "start": "nodemon server.js",
     "apiTest": "./node_modules/.bin/mocha test --runInBand--timeout 30000 --exit > ./studentApiTestResult.txt",
     "test": "node_modules/.bin/jest --runInBand --coverage > ./unitTestResult.txt",
     "acceptanceTest": "npx mocha --runInBand --spec acceptanceTest/testEzWhAPI.js --reporter mochawesome --timeout 10000 --exit",

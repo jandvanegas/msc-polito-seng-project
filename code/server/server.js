@@ -170,8 +170,12 @@ app.delete("/api/internalOrders/:id", myInternalOrderApi.remove); //ok
 app.get("/api/items", myItemApi.getAll); //ok
 app.get("/api/items/:id", myItemApi.getById); //ok
 app.post("/api/item", myItemApi.add); //ok
-app.put("/api/item/:id", myItemApi.update); //ok
+app.put("/api/item/:id", myItemApi.update); // to check
 app.delete("/api/items/:id", myItemApi.remove); //ok
+
+app.get("/api/items/:id/:supplierId", myItemApi.getByIdAndSupplierId); //ok
+app.put("/api/item/:id/:supplierId", myItemApi.updateByIdAndSupplierId) // to check
+app.delete("/api/items/:id/:supplierId", myItemApi.deleteByIdAndSupplierId)
 
 
 app.use((err, req, res, next) => {

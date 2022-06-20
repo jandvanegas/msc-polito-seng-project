@@ -28,11 +28,11 @@ function itemDao(db) {
         const sql = "UPDATE item SET description=?, price=? WHERE id=? ";
         const list = [newDescription, newPrice, id];
         return new Promise((resolve, reject) => {
-            db.run(sql, list, (err) => {
+            db.run(sql, list, function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(1);
+                    resolve(this.lastID);
                 }
             });
         });
@@ -58,12 +58,61 @@ function itemDao(db) {
             });
         });
     }
+    const getByIdAndSupplierId = (id, supplierId) => {
+        const sql = "SELECT * FROM item WHERE id=? and supplierId=?";
+        const list = [id, supplierId];
+        return new Promise((resolve, reject) => {
+            db.all(sql, list, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (rows.length > 0) {
+                        resolve(rows[0])
+                    }
+                    reject(new ResourceNotFoundError(`item`))
+                }
+            });
+        });
+    };
+
+    const updateByIdAndSupplierId = (id, supplierId, newDescription, newPrice) => {
+        const sql = "UPDATE item SET description=?, price=? WHERE id=? and supplierId=?"
+        const list = [newDescription, newPrice, id, supplierId]
+        return new Promise((resolve, reject) => {
+            db.run(sql, list, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.lastID)
+                }
+            });
+        });
+    }
+
+    const deleteByIdAndSupplierId = (id, supplierId) => {
+        const sql = "DELETE FROM item WHERE id=? and supplierId=?"
+        const list = [id, supplierId]
+        return new Promise((resolve, reject) => {
+            db.run(sql, list, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.lastID);
+                }
+            });
+        });
+    }
+
+
     return {
         getAll: getAll,
         getById: getById,
         add: add,
         update: update,
         remove: remove,
+        getByIdAndSupplierId: getByIdAndSupplierId,
+        updateByIdAndSupplierId: updateByIdAndSupplierId,
+        deleteByIdAndSupplierId: deleteByIdAndSupplierId,
         getItemByIdSkuIdAndSupplierId: getItemByIdSkuIdAndSupplierId,
     };
 }
