@@ -72,7 +72,7 @@ const myTestResultService = testResultService(myTestResultDao, mySkuItemDao, myT
 const myInternalOrderService = internalOrderService(myInternalOrderDao)
 const myItemService = itemService(myItemDao, mySkuDao)
 const myUserService = userService(myUserDao)
-const myRestockOrderService = restockOrderService(myRestockOrderDao)
+const myRestockOrderService = restockOrderService(myRestockOrderDao, myItemDao)
 
 // Apis
 const mySkuApi = skusApi(mySkuService)

@@ -2,7 +2,7 @@ const {ValidationError} = require("../utils/exceptions");
 
 const dayjs = require('dayjs')
 
-function restockOrderService(restockOrderDao) {
+function restockOrderService(restockOrderDao, itemDao) {
     const getAll = async () => {
         const orders = await restockOrderDao.getAll()
         return orders.map(order => {
@@ -46,6 +46,9 @@ function restockOrderService(restockOrderDao) {
         products,
         supplierId,
     ) => {
+        for (const product of products){
+            await itemDao.getItemByIdSkuIdAndSupplierId(product['itemId'], product['SKUId'], supplierId)
+        }
         return await restockOrderDao.add(
             issueDate,
             products,

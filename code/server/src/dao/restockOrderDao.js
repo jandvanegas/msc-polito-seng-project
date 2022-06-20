@@ -67,12 +67,16 @@ function restockOrderDao(db) {
                 if (err) {
                     reject(err);
                 } else {
-                    const x = rows.map((e) => (
-                        {
-                            skuItems: JSON.parse(JSON.stringify(e.skuItems))
-                        }
-                    ))
-                    resolve(x)
+                    if (rows.length > 0) {
+                        const x = rows.map((e) => {
+                                if (e.skuItems.length > 0)
+                                    return JSON.parse(e.skuItems)
+                                else return []
+                            }
+                        )
+                        resolve(x[0])
+                    }
+                    reject(new ResourceNotFoundError('Resource not found'))
                 }
             })
         });
@@ -98,7 +102,7 @@ function restockOrderDao(db) {
         // Modify the state of a restock order, given its id.
         const sql = "UPDATE restockOrders SET state = ? WHERE id = ?";
         return new Promise(function (resolve, reject) {
-            db.run(sql, [state, id], function(err){
+            db.run(sql, [state, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {

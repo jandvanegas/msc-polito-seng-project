@@ -7,7 +7,13 @@ function restockOrderApi(restockOrderService) {
     const getAll = (req, res, next) => {
         restockOrderService.getAll()
             .then((rows) => {
-                res.status(200).json(rows);
+                const hydratedRows = rows.map(row => {
+                    return {
+                        ...row,
+                        'products': JSON.parse(row['products'])
+                    }
+                })
+                res.status(200).json(hydratedRows);
             })
             .catch((err) => next(err));
     }
@@ -15,7 +21,13 @@ function restockOrderApi(restockOrderService) {
     const getIssued = (req, res, next) => {
         restockOrderService.getIssued()
             .then((rows) => {
-                res.status(200).json(rows);
+                const hydratedRows = rows.map(row => {
+                    return {
+                        ...row,
+                        'products': JSON.parse(row['products'])
+                    }
+                })
+                res.status(200).json(hydratedRows);
             })
             .catch((err) => next(err));
     }
@@ -25,14 +37,16 @@ function restockOrderApi(restockOrderService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
 
         restockOrderService.getById(id)
             .then((value) => {
-                return res.status(200).json(value);
+                const row = {...value,
+                'products': JSON.parse(value['products'])}
+                return res.status(200).json(row);
             })
             .catch((err) => next(err));
     }
@@ -42,7 +56,7 @@ function restockOrderApi(restockOrderService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
@@ -86,7 +100,7 @@ function restockOrderApi(restockOrderService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
@@ -110,7 +124,7 @@ function restockOrderApi(restockOrderService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
@@ -134,7 +148,7 @@ function restockOrderApi(restockOrderService) {
         const conditionsValid = apiHelper.conditionsValid(next,
             [
                 Number.isInteger(id),
-                id >=0
+                id >= 0
             ]
         )
         if (!conditionsValid) return;
