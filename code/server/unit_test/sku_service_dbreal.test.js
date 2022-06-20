@@ -333,7 +333,7 @@ describe("update sku position", () => {
       19.88,
       43
     );
-    await myPositionDao.add("123456111111", 1234, 1234, 1234, 1234, 1234);
+    sharedData.position = await myPositionDao.add("123456111111", 1234, 1234, 1234, 1234, 1234);
   });
 
   testSkuUpdatePosition(sharedData);
@@ -343,7 +343,7 @@ async function testSkuUpdatePosition(data) {
   test("update sku position", async () => {
     let res1 = await skuServiceInstance.updatePosition(
       data.id1,
-      "123456789012"
+      "123456111111"
     );
     let res2 = await skuServiceInstance.getById(data.id1);
     expect(res2).toEqual({
@@ -352,7 +352,7 @@ async function testSkuUpdatePosition(data) {
       weight: 100,
       volume: 50,
       notes: "note...",
-      position: "123456789012",
+      position: "123456111111",
       price: 19.88,
       availableQuantity: 43,
       testDescriptors: "[]",

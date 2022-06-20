@@ -180,7 +180,7 @@ describe("add sku", () => {
       },
     ]);
   });
-}); 
+});
 
 describe("update sku", () => {
   beforeEach(() => {
@@ -283,6 +283,10 @@ describe("remove all sku", () => {
 
 describe("update position", () => {
   beforeEach(() => {
+    skuDao.getById.mockReturnValue({
+      'id': 1
+    });
+    skuDao.getByPosition.mockReturnValue([]);
     skuDao.updatePosition.mockReset();
   });
 
